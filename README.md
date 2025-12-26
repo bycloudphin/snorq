@@ -76,7 +76,7 @@ SNORQ is an affordable, unified messaging platform that allows small businesses,
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/snorq.git
+git clone https://github.com/bycloudphin/snorq.git
 cd snorq
 
 # Install dependencies
