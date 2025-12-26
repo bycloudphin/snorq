@@ -21,6 +21,9 @@
         "noFallthroughCasesInSwitch": true,
         "allowSyntheticDefaultImports": true,
         "esModuleInterop": true,
+        "types": [
+            "vite/client"
+        ],
         "baseUrl": ".",
         "paths": {
             "@/*": [

@@ -5,7 +5,7 @@ import Redis from 'ioredis';
 const prisma = new PrismaClient();
 
 export const healthRoutes: FastifyPluginAsync = async (fastify) => {
-    fastify.get('/health', async (request, reply) => {
+    fastify.get('/health', async (_request, reply) => {
         const health = {
             status: 'healthy',
             timestamp: new Date().toISOString(),

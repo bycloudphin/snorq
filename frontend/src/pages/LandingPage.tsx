@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
     MessageSquare,
-    Zap,
-    Shield,
     ArrowRight,
     Check,
     Star,
@@ -287,7 +285,6 @@ export function LandingPage() {
                             number="01"
                             title="Unified Inbox"
                             description="All your TikTok, WhatsApp, and Messenger conversations in one beautiful dashboard."
-                            light
                         />
                         <FeatureCard
                             number="02"
@@ -299,7 +296,6 @@ export function LandingPage() {
                             number="03"
                             title="24/7 Support"
                             description="Get help whenever you need from our expert customer service team."
-                            light
                         />
                     </div>
                 </div>
@@ -655,19 +651,17 @@ function FeatureCard({
     title,
     description,
     dark = false,
-    light = false,
 }: {
     number: string;
     title: string;
     description: string;
     dark?: boolean;
-    light?: boolean;
 }) {
     return (
         <div
             className={`rounded-3xl p-8 transition-all hover:-translate-y-1 ${dark
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-white border border-slate-200 hover:shadow-xl hover:shadow-slate-200/50'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white border border-slate-200 hover:shadow-xl hover:shadow-slate-200/50'
                 }`}
         >
             <div className="flex items-center justify-between mb-8">
@@ -700,8 +694,8 @@ function PricingCard({
     return (
         <div
             className={`rounded-3xl p-8 relative ${popular
-                    ? 'bg-slate-900 text-white ring-4 ring-indigo-500/20'
-                    : 'bg-white border border-slate-200'
+                ? 'bg-slate-900 text-white ring-4 ring-indigo-500/20'
+                : 'bg-white border border-slate-200'
                 }`}
         >
             {popular && (
@@ -732,8 +726,8 @@ function PricingCard({
             <Link
                 to="/login"
                 className={`block w-full py-3 rounded-xl text-center font-medium transition-all ${popular
-                        ? 'bg-white text-slate-900 hover:bg-slate-100'
-                        : 'bg-slate-900 text-white hover:bg-slate-800'
+                    ? 'bg-white text-slate-900 hover:bg-slate-100'
+                    : 'bg-slate-900 text-white hover:bg-slate-800'
                     }`}
             >
                 Get Started
