@@ -1,0 +1,227 @@
+// SNORQ Database Schema
+// Prisma ORM for PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & ORGANIZATION MODELS
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  googleId  String?  @unique @map("google_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  ownedOrganizations Organization[]       @relation("OrganizationOwner")
+  memberships        OrganizationMember[]
+  sentMessages       Message[]            @relation("SentByUser")
+
+  @@map("users")
+}
+
+model Organization {
+  id      String   @id @default(cuid())
+  name    String
+  slug    String   @unique
+  plan    PlanType @default(FREE)
+
+  ownerId String @map("owner_id")
+  owner   User   @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members             OrganizationMember[]
+  platformConnections PlatformConnection[]
+  conversations       Conversation[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id   String     @id @default(cuid())
+  role MemberRole @default(MEMBER)
+
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  @@unique([organizationId, userId])
+  @@map("organization_members")
+}
+
+// ============================================
+// PLATFORM CONNECTION MODELS
+// ============================================
+
+model PlatformConnection {
+  id       String   @id @default(cuid())
+  platform Platform
+
+  platformUserId      String  @map("platform_user_id")
+  platformUsername    String? @map("platform_username")
+  platformDisplayName String? @map("platform_display_name")
+
+  accessToken    String    @map("access_token")
+  refreshToken   String?   @map("refresh_token")
+  tokenExpiresAt DateTime? @map("token_expires_at")
+
+  status       ConnectionStatus @default(ACTIVE)
+  lastSyncAt   DateTime?        @map("last_sync_at")
+  errorMessage String?          @map("error_message")
+
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  conversations Conversation[]
+
+  @@unique([organizationId, platform, platformUserId])
+  @@map("platform_connections")
+}
+
+// ============================================
+// CONVERSATION & MESSAGE MODELS
+// ============================================
+
+model Conversation {
+  id       String   @id @default(cuid())
+  platform Platform
+
+  externalId       String  @map("external_id")
+  externalThreadId String? @map("external_thread_id")
+
+  contactExternalId String  @map("contact_external_id")
+  contactName       String? @map("contact_name")
+  contactUsername   String? @map("contact_username")
+  contactAvatarUrl  String? @map("contact_avatar_url")
+
+  lastMessagePreview String?   @map("last_message_preview")
+  lastMessageAt      DateTime? @map("last_message_at")
+  unreadCount        Int       @default(0) @map("unread_count")
+  status             ConversationStatus @default(OPEN)
+
+  labels String[] @default([])
+
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  platformConnectionId String             @map("platform_connection_id")
+  platformConnection   PlatformConnection @relation(fields: [platformConnectionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  messages Message[]
+
+  @@unique([platformConnectionId, externalId])
+  @@index([organizationId, updatedAt(sort: Desc)])
+  @@index([platform, updatedAt(sort: Desc)])
+  @@map("conversations")
+}
+
+model Message {
+  id String @id @default(cuid())
+
+  externalId String? @map("external_id")
+
+  direction   MessageDirection
+  content     String?
+  contentType ContentType      @default(TEXT) @map("content_type")
+
+  mediaUrl       String? @map("media_url")
+  mediaType      String? @map("media_type")
+  mediaThumbnail String? @map("media_thumbnail")
+
+  status MessageStatus @default(SENT)
+
+  sentByUserId String? @map("sent_by_user_id")
+  sentByUser   User?   @relation("SentByUser", fields: [sentByUserId], references: [id])
+
+  platformTimestamp DateTime? @map("platform_timestamp")
+
+  conversationId String       @map("conversation_id")
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@map("messages")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum Platform {
+  TIKTOK
+  WHATSAPP
+  FACEBOOK
+}
+
+enum PlanType {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ConnectionStatus {
+  ACTIVE
+  EXPIRED
+  ERROR
+  DISCONNECTED
+}
+
+enum ConversationStatus {
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum ContentType {
+  TEXT
+  IMAGE
+  VIDEO
+  AUDIO
+  FILE
+  STICKER
+  LOCATION
+}
+
+enum MessageStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
