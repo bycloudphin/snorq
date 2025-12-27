@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { MessageSquare, Mail, MapPin, Phone, Send, Loader2, CheckCircle } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, Loader2, CheckCircle } from 'lucide-react';
+import { StaticPageLayout } from '../../components/layout/StaticPageLayout';
 
 export function ContactPage() {
     const [formData, setFormData] = useState({
@@ -24,107 +24,92 @@ export function ContactPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white">
-            {/* Header */}
-            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-100">
-                <div className="container mx-auto max-w-6xl px-6 py-4 flex items-center justify-between">
-                    <Link to="/" className="flex items-center gap-2">
-                        <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center">
-                            <MessageSquare className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-xl font-bold text-slate-900">SNORQ</span>
-                    </Link>
-                    <Link to="/login" className="btn-primary text-sm px-4 py-2">
-                        Get Started
-                    </Link>
-                </div>
-            </header>
-
+        <StaticPageLayout>
             {/* Hero */}
-            <section className="py-20 px-6">
+            <section className="py-16 px-6">
                 <div className="container mx-auto max-w-4xl text-center">
-                    <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
+                    <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
                         Get in Touch
                     </h1>
-                    <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">
                         Have a question, feedback, or just want to say hi? We'd love to hear from you.
                     </p>
                 </div>
             </section>
 
             {/* Contact Section */}
-            <section className="py-8 px-6">
+            <section className="pb-16 px-6">
                 <div className="container mx-auto max-w-5xl">
-                    <div className="grid md:grid-cols-2 gap-12">
+                    <div className="grid md:grid-cols-2 gap-10">
                         {/* Contact Info */}
                         <div>
-                            <h2 className="text-2xl font-bold text-slate-900 mb-6">Contact Information</h2>
+                            <h2 className="text-xl font-bold text-slate-900 mb-5">Contact Information</h2>
 
-                            <div className="space-y-6">
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
-                                        <Mail className="w-5 h-5" />
+                            <div className="space-y-5">
+                                <div className="flex gap-3">
+                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+                                        <Mail className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-slate-900">Email</h3>
-                                        <a href="mailto:hello@snorq.xyz" className="text-green-600 hover:underline">
+                                        <h3 className="text-sm font-semibold text-slate-900">Email</h3>
+                                        <a href="mailto:hello@snorq.xyz" className="text-sm text-green-600 hover:underline">
                                             hello@snorq.xyz
                                         </a>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
-                                        <Phone className="w-5 h-5" />
+                                <div className="flex gap-3">
+                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+                                        <Phone className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-slate-900">Support</h3>
-                                        <p className="text-slate-600">Available Mon-Fri, 9am-5pm AEST</p>
+                                        <h3 className="text-sm font-semibold text-slate-900">Support</h3>
+                                        <p className="text-sm text-slate-600">Available Mon-Fri, 9am-5pm AEST</p>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 flex-shrink-0">
-                                        <MapPin className="w-5 h-5" />
+                                <div className="flex gap-3">
+                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center text-green-600 flex-shrink-0">
+                                        <MapPin className="w-4 h-4" />
                                     </div>
                                     <div>
-                                        <h3 className="font-semibold text-slate-900">Location</h3>
-                                        <p className="text-slate-600">Sydney, Australia</p>
-                                        <p className="text-sm text-slate-500">Remote-first company</p>
+                                        <h3 className="text-sm font-semibold text-slate-900">Location</h3>
+                                        <p className="text-sm text-slate-600">Sydney, Australia</p>
+                                        <p className="text-xs text-slate-500">Remote-first company</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* FAQ Link */}
-                            <div className="mt-10 p-6 bg-slate-50 rounded-2xl">
-                                <h3 className="font-semibold text-slate-900 mb-2">Looking for quick answers?</h3>
-                                <p className="text-slate-600 text-sm mb-4">
+                            <div className="mt-8 p-4 bg-slate-50 rounded-xl">
+                                <h3 className="text-sm font-semibold text-slate-900 mb-1">Looking for quick answers?</h3>
+                                <p className="text-xs text-slate-600 mb-3">
                                     Check our documentation for common questions about platform integrations, billing, and features.
                                 </p>
-                                <a href="#" className="text-green-600 font-medium text-sm hover:underline">
+                                <a href="#" className="text-green-600 font-medium text-xs hover:underline">
                                     Visit Help Center →
                                 </a>
                             </div>
                         </div>
 
                         {/* Contact Form */}
-                        <div className="bg-slate-50 p-8 rounded-2xl">
+                        <div className="bg-slate-50 p-6 rounded-xl">
                             {isSubmitted ? (
-                                <div className="text-center py-12">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <CheckCircle className="w-8 h-8 text-green-600" />
+                                <div className="text-center py-10">
+                                    <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                        <CheckCircle className="w-6 h-6 text-green-600" />
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 mb-2">Message Sent!</h3>
-                                    <p className="text-slate-600">
+                                    <h3 className="text-lg font-bold text-slate-900 mb-1">Message Sent!</h3>
+                                    <p className="text-sm text-slate-600">
                                         Thank you for reaching out. We'll get back to you within 24 hours.
                                     </p>
                                 </div>
                             ) : (
                                 <>
-                                    <h2 className="text-2xl font-bold text-slate-900 mb-6">Send us a message</h2>
-                                    <form onSubmit={handleSubmit} className="space-y-5">
+                                    <h2 className="text-xl font-bold text-slate-900 mb-5">Send us a message</h2>
+                                    <form onSubmit={handleSubmit} className="space-y-4">
                                         <div>
-                                            <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                            <label htmlFor="name" className="block text-xs font-medium text-slate-700 mb-1">
                                                 Your Name
                                             </label>
                                             <input
@@ -133,13 +118,13 @@ export function ContactPage() {
                                                 value={formData.name}
                                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                                 placeholder="John Doe"
-                                                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white"
+                                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white"
                                                 required
                                             />
                                         </div>
 
                                         <div>
-                                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                            <label htmlFor="email" className="block text-xs font-medium text-slate-700 mb-1">
                                                 Email Address
                                             </label>
                                             <input
@@ -148,20 +133,20 @@ export function ContactPage() {
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 placeholder="you@example.com"
-                                                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white"
+                                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white"
                                                 required
                                             />
                                         </div>
 
                                         <div>
-                                            <label htmlFor="subject" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                            <label htmlFor="subject" className="block text-xs font-medium text-slate-700 mb-1">
                                                 Subject
                                             </label>
                                             <select
                                                 id="subject"
                                                 value={formData.subject}
                                                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white"
+                                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white"
                                                 required
                                             >
                                                 <option value="">Select a topic...</option>
@@ -174,16 +159,16 @@ export function ContactPage() {
                                         </div>
 
                                         <div>
-                                            <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                            <label htmlFor="message" className="block text-xs font-medium text-slate-700 mb-1">
                                                 Message
                                             </label>
                                             <textarea
                                                 id="message"
-                                                rows={5}
+                                                rows={4}
                                                 value={formData.message}
                                                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                                                 placeholder="How can we help you?"
-                                                className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white resize-none"
+                                                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all bg-white resize-none"
                                                 required
                                             />
                                         </div>
@@ -191,13 +176,13 @@ export function ContactPage() {
                                         <button
                                             type="submit"
                                             disabled={isSubmitting}
-                                            className="w-full btn-primary flex items-center justify-center gap-2"
+                                            className="w-full btn-primary flex items-center justify-center gap-2 text-sm py-2"
                                         >
                                             {isSubmitting ? (
-                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <Loader2 className="w-4 h-4 animate-spin" />
                                             ) : (
                                                 <>
-                                                    Send Message <Send className="w-4 h-4" />
+                                                    Send Message <Send className="w-3 h-3" />
                                                 </>
                                             )}
                                         </button>
@@ -208,31 +193,6 @@ export function ContactPage() {
                     </div>
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="bg-slate-900 text-slate-400 py-12 px-6 mt-20">
-                <div className="container mx-auto max-w-6xl">
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-                                <MessageSquare className="w-4 h-4 text-slate-900" />
-                            </div>
-                            <span className="font-bold text-white">SNORQ</span>
-                        </div>
-                        <div className="flex flex-wrap justify-center gap-6 text-sm">
-                            <Link to="/about" className="hover:text-white transition-colors">About</Link>
-                            <Link to="/blog" className="hover:text-white transition-colors">Blog</Link>
-                            <Link to="/careers" className="hover:text-white transition-colors">Careers</Link>
-                            <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
-                            <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-                            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
-                        </div>
-                        <div className="text-sm">
-                            © {new Date().getFullYear()} SNORQ. All rights reserved.
-                        </div>
-                    </div>
-                </div>
-            </footer>
-        </div>
+        </StaticPageLayout>
     );
 }
