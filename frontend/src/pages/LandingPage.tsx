@@ -19,16 +19,36 @@ import {
 export function LandingPage() {
     const [email, setEmail] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleSubscribe = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (email) {
-            // TODO: Integrate with backend API to save email
-            console.log('Email submitted:', email);
-            setIsSubmitted(true);
-            setEmail('');
-            setTimeout(() => setIsSubmitted(false), 5000);
+        if (!email) return;
+
+        setIsLoading(true);
+        try {
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+            const response = await fetch(`${API_URL}/newsletter/subscribe`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setIsSubmitted(true);
+                setEmail('');
+                setTimeout(() => setIsSubmitted(false), 5000);
+            } else {
+                console.error('Subscription failed:', data.error);
+                // Optional: You could set an error state here to show to the user
+            }
+        } catch (error) {
+            console.error('Subscription error:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -121,13 +141,20 @@ export function LandingPage() {
                                             onChange={(e) => setEmail(e.target.value)}
                                             className="input input-lg pr-4 rounded-full"
                                             required
+                                            disabled={isLoading}
                                         />
                                     </div>
                                     <button
                                         type="submit"
-                                        className="btn btn-primary rounded-full px-8 py-4 text-base font-semibold whitespace-nowrap group"
+                                        disabled={isLoading}
+                                        className="btn btn-primary rounded-full px-8 py-4 text-base font-semibold whitespace-nowrap group disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
-                                        {isSubmitted ? (
+                                        {isLoading ? (
+                                            <span className="flex items-center gap-2">
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Joining...
+                                            </span>
+                                        ) : isSubmitted ? (
                                             <>
                                                 <Check className="w-5 h-5" />
                                                 Subscribed!
@@ -370,12 +397,26 @@ export function LandingPage() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 className="flex-1 px-5 py-4 bg-slate-800 border border-slate-700 rounded-full text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500"
                                 required
+                                disabled={isLoading}
                             />
                             <button
                                 type="submit"
-                                className="btn btn-primary rounded-full px-8 py-4 text-base font-semibold"
+                                disabled={isLoading}
+                                className="btn btn-primary rounded-full px-8 py-4 text-base font-semibold min-w-[160px] disabled:opacity-70 disabled:cursor-not-allowed"
                             >
-                                Join Waitlist
+                                {isLoading ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        Joining...
+                                    </span>
+                                ) : isSubmitted ? (
+                                    <span className="flex items-center justify-center gap-2">
+                                        <Check className="w-5 h-5" />
+                                        Subscribed
+                                    </span>
+                                ) : (
+                                    'Join Waitlist'
+                                )}
                             </button>
                         </div>
                     </form>
