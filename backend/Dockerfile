@@ -40,6 +40,10 @@ RUN npx prisma generate
 # Copy built files
 COPY --from=builder /app/dist ./dist
 
+# Copy startup script
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 # Set environment
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -47,5 +51,5 @@ ENV HOST=0.0.0.0
 
 EXPOSE 3000
 
-# Run migrations and start
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Use the entrypoint script
+ENTRYPOINT ["./docker-entrypoint.sh"]
