@@ -1,29 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MessageSquare, Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2, Check } from 'lucide-react';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
-
-interface AuthResponse {
-    success: boolean;
-    data?: {
-        user: {
-            id: string;
-            email: string;
-            name: string | null;
-            avatarUrl: string | null;
-        };
-        accessToken: string;
-    };
-    error?: {
-        code: number;
-        message: string;
-        details?: Array<{ message: string }>;
-    };
-}
+import { useAuth } from '../../contexts/AuthContext';
 
 export function RegisterPage() {
     const navigate = useNavigate();
+    const { register, isAuthenticated, isLoading: authLoading } = useAuth();
+
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -31,6 +14,13 @@ export function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated && !authLoading) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, authLoading, navigate]);
 
     // Password strength indicators
     const passwordChecks = {
@@ -60,37 +50,24 @@ export function RegisterPage() {
 
         setIsLoading(true);
 
-        try {
-            const response = await fetch(`${API_URL}/auth/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ email, password, name: name || undefined }),
-            });
+        const result = await register(email, password, name || undefined);
 
-            const data: AuthResponse = await response.json();
-
-            if (data.success && data.data) {
-                // Store access token
-                localStorage.setItem('accessToken', data.data.accessToken);
-                localStorage.setItem('user', JSON.stringify(data.data.user));
-                navigate('/dashboard');
-            } else {
-                if (data.error?.details) {
-                    setError(data.error.details[0]?.message || data.error.message);
-                } else {
-                    setError(data.error?.message || 'Registration failed');
-                }
-            }
-        } catch (err) {
-            setError('Network error. Please try again.');
-            console.error('Register error:', err);
-        } finally {
-            setIsLoading(false);
+        if (result.success) {
+            navigate('/dashboard');
+        } else {
+            setError(result.error || 'Registration failed');
         }
+
+        setIsLoading(false);
     };
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white flex">
@@ -106,6 +83,29 @@ export function RegisterPage() {
                     <p className="text-slate-400">
                         Start managing all your social conversations in one unified inbox. Free to get started.
                     </p>
+
+                    {/* Plan info */}
+                    <div className="mt-8 p-6 bg-slate-800/50 rounded-2xl text-left">
+                        <h3 className="text-white font-semibold mb-3">Free Plan Includes:</h3>
+                        <ul className="space-y-2 text-slate-400 text-sm">
+                            <li className="flex items-center gap-2">
+                                <Check className="w-4 h-4 text-green-400" />
+                                1 team member
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <Check className="w-4 h-4 text-green-400" />
+                                3 platform connections
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <Check className="w-4 h-4 text-green-400" />
+                                Unlimited conversations
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <Check className="w-4 h-4 text-green-400" />
+                                Basic analytics
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
 
@@ -126,7 +126,7 @@ export function RegisterPage() {
                     <div className="mb-8">
                         <h1 className="text-3xl font-bold text-slate-900 mb-2">Create your account</h1>
                         <p className="text-slate-500">
-                            Get started with your free account today
+                            Get started with your free workspace today
                         </p>
                     </div>
 
@@ -209,12 +209,12 @@ export function RegisterPage() {
                                             <div
                                                 key={level}
                                                 className={`h-1 flex-1 rounded-full transition-colors ${passwordStrength >= level
-                                                    ? passwordStrength <= 2
-                                                        ? 'bg-red-400'
-                                                        : passwordStrength === 3
-                                                            ? 'bg-amber-400'
-                                                            : 'bg-green-400'
-                                                    : 'bg-slate-200'
+                                                        ? passwordStrength <= 2
+                                                            ? 'bg-red-400'
+                                                            : passwordStrength === 3
+                                                                ? 'bg-amber-400'
+                                                                : 'bg-green-400'
+                                                        : 'bg-slate-200'
                                                     }`}
                                             />
                                         ))}
@@ -250,8 +250,8 @@ export function RegisterPage() {
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
                                     className={`w-full pl-12 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 transition-all ${confirmPassword && confirmPassword !== password
-                                        ? 'border-red-300 focus:border-red-500'
-                                        : 'border-slate-200 focus:border-green-500'
+                                            ? 'border-red-300 focus:border-red-500'
+                                            : 'border-slate-200 focus:border-green-500'
                                         }`}
                                     required
                                     disabled={isLoading}

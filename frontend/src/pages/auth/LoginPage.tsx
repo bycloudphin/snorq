@@ -1,134 +1,108 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MessageSquare, Mail, Lock, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-
-interface AuthResponse {
-    success: boolean;
-    data?: {
-        user: {
-            id: string;
-            email: string;
-            name: string | null;
-            avatarUrl: string | null;
-        };
-        accessToken: string;
-    };
-    error?: {
-        code: number;
-        message: string;
-    };
-}
 
 export function LoginPage() {
     const navigate = useNavigate();
+    const { login, loginWithGoogle, isAuthenticated, isLoading: authLoading } = useAuth();
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
 
+    // Redirect if already authenticated
+    useEffect(() => {
+        if (isAuthenticated && !authLoading) {
+            navigate('/dashboard');
+        }
+    }, [isAuthenticated, authLoading, navigate]);
+
     const handleEmailLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
 
-        try {
-            const response = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ email, password }),
-            });
+        const result = await login(email, password);
 
-            const data: AuthResponse = await response.json();
-
-            if (data.success && data.data) {
-                // Store access token
-                localStorage.setItem('accessToken', data.data.accessToken);
-                localStorage.setItem('user', JSON.stringify(data.data.user));
-                navigate('/dashboard');
-            } else {
-                setError(data.error?.message || 'Login failed');
-            }
-        } catch (err) {
-            setError('Network error. Please try again.');
-            console.error('Login error:', err);
-        } finally {
-            setIsLoading(false);
+        if (result.success) {
+            navigate('/dashboard');
+        } else {
+            setError(result.error || 'Login failed');
         }
+
+        setIsLoading(false);
     };
 
-    const handleGoogleLogin = async (response: { credential: string }) => {
+    const handleGoogleCallback = async (response: { credential: string }) => {
         setError('');
         setIsLoading(true);
 
-        try {
-            const res = await fetch(`${API_URL}/auth/google`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({ credential: response.credential }),
-            });
+        const result = await loginWithGoogle(response.credential);
 
-            const data: AuthResponse = await res.json();
-
-            if (data.success && data.data) {
-                localStorage.setItem('accessToken', data.data.accessToken);
-                localStorage.setItem('user', JSON.stringify(data.data.user));
-                navigate('/dashboard');
-            } else {
-                setError(data.error?.message || 'Google login failed');
-            }
-        } catch (err) {
-            setError('Network error. Please try again.');
-            console.error('Google login error:', err);
-        } finally {
-            setIsLoading(false);
+        if (result.success) {
+            navigate('/dashboard');
+        } else {
+            setError(result.error || 'Google login failed');
         }
+
+        setIsLoading(false);
     };
 
     // Load Google Sign-In script
-    const loadGoogleScript = () => {
-        if (document.getElementById('google-signin-script')) return;
+    useEffect(() => {
+        if (!GOOGLE_CLIENT_ID) return;
 
-        const script = document.createElement('script');
-        script.id = 'google-signin-script';
-        script.src = 'https://accounts.google.com/gsi/client';
-        script.async = true;
-        script.defer = true;
-        script.onload = () => {
-            if (window.google && GOOGLE_CLIENT_ID) {
+        const loadGoogleScript = () => {
+            if (document.getElementById('google-signin-script')) {
+                // Script already loaded, just render button
+                renderGoogleButton();
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.id = 'google-signin-script';
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            script.defer = true;
+            script.onload = () => {
+                renderGoogleButton();
+            };
+            document.body.appendChild(script);
+        };
+
+        const renderGoogleButton = () => {
+            if (window.google) {
                 window.google.accounts.id.initialize({
                     client_id: GOOGLE_CLIENT_ID,
-                    callback: handleGoogleLogin,
+                    callback: handleGoogleCallback,
                 });
                 window.google.accounts.id.renderButton(
                     document.getElementById('google-signin-button'),
                     {
                         theme: 'outline',
                         size: 'large',
-                        width: '100%',
+                        width: 384,
                         text: 'continue_with',
                     }
                 );
             }
         };
-        document.body.appendChild(script);
-    };
 
-    // Load Google script on mount
-    useState(() => {
-        if (GOOGLE_CLIENT_ID) {
-            loadGoogleScript();
-        }
-    });
+        loadGoogleScript();
+    }, []);
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-green-500" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-white flex">
@@ -163,7 +137,7 @@ export function LoginPage() {
                     {/* Google Sign In */}
                     {GOOGLE_CLIENT_ID && (
                         <>
-                            <div id="google-signin-button" className="mb-6" />
+                            <div id="google-signin-button" className="mb-6 flex justify-center" />
 
                             <div className="relative mb-6">
                                 <div className="absolute inset-0 flex items-center">
@@ -303,7 +277,7 @@ declare global {
                         options: {
                             theme: string;
                             size: string;
-                            width?: string;
+                            width?: number;
                             text?: string;
                         }
                     ) => void;
