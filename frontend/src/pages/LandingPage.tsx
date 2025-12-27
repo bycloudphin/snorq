@@ -474,6 +474,7 @@ export function LandingPage() {
                         <div>
                             <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
                             <ul className="space-y-3 text-sm">
+                                <li><Link to="/legal" className="text-slate-500 hover:text-slate-900 transition-colors">Legal Overview</Link></li>
                                 <li><Link to="/privacy" className="text-slate-500 hover:text-slate-900 transition-colors">Privacy Policy</Link></li>
                                 <li><Link to="/terms" className="text-slate-500 hover:text-slate-900 transition-colors">Terms of Service</Link></li>
                                 <li><Link to="/security" className="text-slate-500 hover:text-slate-900 transition-colors">Security</Link></li>

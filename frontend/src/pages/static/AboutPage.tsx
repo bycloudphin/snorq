@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Target, Users, Zap, Heart, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Target, Users, Zap, Heart, CheckCircle2 } from 'lucide-react';
 import { StaticPageLayout } from '../../components/layout/StaticPageLayout';
 
 export function AboutPage() {
