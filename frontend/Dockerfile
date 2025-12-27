@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (using npm install since there's no lock file)
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -14,16 +14,16 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Production stage - using nginx to serve static files
-FROM nginx:alpine AS production
-
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Production stage - using caddy to serve static files
+FROM caddy:2-alpine AS production
 
 # Copy built files
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist /srv
+
+# Copy Caddyfile
+COPY Caddyfile /etc/caddy/Caddyfile
 
 # Expose port
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
