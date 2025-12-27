@@ -17,7 +17,7 @@ export function AboutPage() {
                                 SNORQ is on a mission to unify the world's messaging. We help businesses connect with their customers on the platforms they love, all from one place.
                             </p>
                             <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                                <Link to="/auth/register" className="btn btn-primary rounded-full px-8 py-3 font-semibold">
+                                <Link to="/register" className="btn btn-primary rounded-full px-8 py-3 font-semibold">
                                     Join Our Journey
                                 </Link>
                                 <a href="#story" className="btn btn-outline rounded-full px-8 py-3 font-semibold">
@@ -149,7 +149,7 @@ export function AboutPage() {
                         Join us in redefining how businesses communicate. Whether you're a customer, a partner, or a future team member, we'd love to have you on board.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
-                        <Link to="/auth/register" className="btn btn-primary rounded-full px-10 py-4 text-base font-bold shadow-xl shadow-green-200">
+                        <Link to="/register" className="btn btn-primary rounded-full px-10 py-4 text-base font-bold shadow-xl shadow-green-200">
                             Get Started Free
                         </Link>
                         <Link to="/careers" className="btn btn-outline rounded-full px-10 py-4 text-base font-bold">
