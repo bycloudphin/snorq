@@ -1,0 +1,11 @@
+# SNORQ Backend - Railway Configuration
+
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm run db:migrate && npm start"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
