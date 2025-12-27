@@ -15,11 +15,14 @@ datasource db {
 // ============================================
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  avatarUrl String?  @map("avatar_url")
-  googleId  String?  @unique @map("google_id")
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?  @map("password_hash")
+  name         String?
+  avatarUrl    String?  @map("avatar_url")
+  googleId     String?  @unique @map("google_id")
+  
+  emailVerified Boolean  @default(false) @map("email_verified")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -27,8 +30,21 @@ model User {
   ownedOrganizations Organization[]       @relation("OrganizationOwner")
   memberships        OrganizationMember[]
   sentMessages       Message[]            @relation("SentByUser")
+  refreshTokens      RefreshToken[]
 
   @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("refresh_tokens")
 }
 
 model Organization {

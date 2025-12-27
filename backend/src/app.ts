@@ -5,6 +5,7 @@ import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import { logger } from './utils/logger.js';
 import { healthRoutes } from './routes/health.js';
+import { authRoutes } from './routes/auth.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
     const app = Fastify({
@@ -57,6 +58,7 @@ export async function buildApp(): Promise<FastifyInstance> {
 
     // Register routes
     await app.register(healthRoutes, { prefix: '/api/v1' });
+    await app.register(authRoutes, { prefix: '/api/v1' });
 
     // Error handler
     app.setErrorHandler((error, request, reply) => {

@@ -1,5 +1,8 @@
 FROM node:20-alpine AS builder
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl openssl-dev
+
 WORKDIR /app
 
 # Copy package files
@@ -9,14 +12,20 @@ COPY prisma ./prisma/
 # Install dependencies (using npm install since there's no lock file in subdirectory)
 RUN npm install
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Copy source code
 COPY . .
 
-# Generate Prisma client and build
+# Build TypeScript
 RUN npm run build
 
 # Production stage
 FROM node:20-alpine AS production
+
+# Install OpenSSL for Prisma runtime
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
@@ -24,11 +33,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev
 
-# Copy built files and prisma
+# Copy Prisma schema and generate client
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+# Copy built files
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Set environment
 ENV NODE_ENV=production
