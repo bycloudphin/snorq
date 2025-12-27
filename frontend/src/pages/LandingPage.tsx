@@ -422,10 +422,10 @@ export function LandingPage() {
                         <div>
                             <h4 className="font-semibold text-slate-900 mb-4">Company</h4>
                             <ul className="space-y-3 text-sm">
-                                <li><a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">About</a></li>
-                                <li><a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Blog</a></li>
-                                <li><a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Careers</a></li>
-                                <li><a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Contact</a></li>
+                                <li><Link to="/about" className="text-slate-500 hover:text-slate-900 transition-colors">About</Link></li>
+                                <li><Link to="/blog" className="text-slate-500 hover:text-slate-900 transition-colors">Blog</Link></li>
+                                <li><Link to="/careers" className="text-slate-500 hover:text-slate-900 transition-colors">Careers</Link></li>
+                                <li><Link to="/contact" className="text-slate-500 hover:text-slate-900 transition-colors">Contact</Link></li>
                             </ul>
                         </div>
 
@@ -433,9 +433,9 @@ export function LandingPage() {
                         <div>
                             <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
                             <ul className="space-y-3 text-sm">
-                                <li><a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Privacy Policy</a></li>
-                                <li><a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Terms of Service</a></li>
-                                <li><a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">Security</a></li>
+                                <li><Link to="/privacy" className="text-slate-500 hover:text-slate-900 transition-colors">Privacy Policy</Link></li>
+                                <li><Link to="/terms" className="text-slate-500 hover:text-slate-900 transition-colors">Terms of Service</Link></li>
+                                <li><Link to="/security" className="text-slate-500 hover:text-slate-900 transition-colors">Security</Link></li>
                             </ul>
                         </div>
                     </div>

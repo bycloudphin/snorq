@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { MessageSquare, Target, Users, Zap, Heart, Globe, ArrowRight } from 'lucide-react';
+import { MessageSquare, Target, Users, Zap, Heart, ArrowRight } from 'lucide-react';
 
 export function AboutPage() {
     return (
