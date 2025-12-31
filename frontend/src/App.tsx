@@ -1,9 +1,13 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
-import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { DashboardLayout } from './components/dashboard/DashboardLayout';
+import { DashboardHome } from './pages/dashboard/DashboardHome';
+import { InboxPage } from './pages/dashboard/InboxPage';
+import { IntegrationsPage } from './pages/dashboard/settings/IntegrationsPage';
+import { FacebookCallbackPage } from './pages/dashboard/settings/FacebookCallbackPage';
 import {
     AboutPage,
     BlogPage,
@@ -22,7 +26,16 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
+
+            {/* Dashboard Routes */}
+            <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<DashboardHome />} />
+                <Route path="chat" element={<InboxPage />} />
+                <Route path="settings" element={<IntegrationsPage />} />
+                <Route path="settings/integrations/facebook/callback" element={<FacebookCallbackPage />} />
+                {/* Fallback for other dashboard routes for now */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Route>
 
             {/* Static Pages */}
             <Route path="/about" element={<AboutPage />} />

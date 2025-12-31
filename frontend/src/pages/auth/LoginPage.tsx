@@ -154,16 +154,16 @@ export function LoginPage() {
                     <form onSubmit={handleEmailLogin} className="space-y-5">
                         <div>
                             <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
-                                Email address
+                                Username or Email
                             </label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                                 <input
                                     id="email"
-                                    type="email"
+                                    type="text"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="you@example.com"
+                                    placeholder="username or email"
                                     className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
                                     required
                                     disabled={isLoading}
@@ -228,7 +228,7 @@ export function LoginPage() {
 
                     {/* Register Link */}
                     <p className="mt-8 text-center text-slate-600">
-                        Don't have an account?{' '}
+                        Don&apos;t have an account?{' '}
                         <Link to="/register" className="text-green-600 hover:text-green-700 font-semibold">
                             Create one
                         </Link>

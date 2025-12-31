@@ -43,7 +43,7 @@ export function LegalPage() {
                         Legal
                     </h1>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                        Transparency is important to us. Here you'll find all our legal documents and policies.
+                        Transparency is important to us. Here you&apos;ll find all our legal documents and policies.
                     </p>
                 </div>
             </section>

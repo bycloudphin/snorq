@@ -80,7 +80,7 @@ export function PrivacyPage() {
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 mb-3">5. Your Rights (GDPR)</h2>
                             <p className="text-sm text-slate-600 mb-3 leading-relaxed">
-                                If you're located in the EU, you have the following rights:
+                                If you&apos;re located in the EU, you have the following rights:
                             </p>
                             <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                                 <li><strong>Access:</strong> Request a copy of your personal data</li>
@@ -100,7 +100,7 @@ export function PrivacyPage() {
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 mb-3">6. Data Retention</h2>
                             <p className="text-sm text-slate-600 leading-relaxed">
-                                We retain your data for as long as your account is active. Message history retention depends on your plan (30 days for Free, unlimited for paid plans). When you delete your account, we remove your personal data within 30 days, except where we're legally required to retain it.
+                                We retain your data for as long as your account is active. Message history retention depends on your plan (30 days for Free, unlimited for paid plans). When you delete your account, we remove your personal data within 30 days, except where we&apos;re legally required to retain it.
                             </p>
                         </section>
 
@@ -114,7 +114,7 @@ export function PrivacyPage() {
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 mb-3">8. Changes to This Policy</h2>
                             <p className="text-sm text-slate-600 leading-relaxed">
-                                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the "Last updated" date.
+                                We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new policy on this page and updating the &quot;Last updated&quot; date.
                             </p>
                         </section>
 

@@ -42,7 +42,7 @@ export function CareersPage() {
                         Join the <span className="text-green-500">SNORQ</span> Team
                     </h1>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                        Help us build the future of business messaging. We're looking for passionate people who want to make a difference.
+                        Help us build the future of business messaging. We&apos;re looking for passionate people who want to make a difference.
                     </p>
                 </div>
             </section>
@@ -114,10 +114,10 @@ export function CareersPage() {
             <section className="py-12 px-6">
                 <div className="container mx-auto max-w-3xl text-center">
                     <h2 className="text-xl font-bold text-slate-900 mb-3">
-                        Don't see the right role?
+                        Don&apos;t see the right role?
                     </h2>
                     <p className="text-sm text-slate-600 mb-4">
-                        We're always looking for talented people. Send us your resume and we'll reach out when we have a match.
+                        We&apos;re always looking for talented people. Send us your resume and we&apos;ll reach out when we have a match.
                     </p>
                     <a href="mailto:careers@snorq.xyz" className="btn-secondary inline-flex items-center gap-2 text-sm">
                         Send Your Resume

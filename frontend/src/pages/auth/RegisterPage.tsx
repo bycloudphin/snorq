@@ -8,6 +8,8 @@ export function RegisterPage() {
     const { register, isAuthenticated, isLoading: authLoading } = useAuth();
 
     const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
+    const [businessName, setBusinessName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -50,7 +52,7 @@ export function RegisterPage() {
 
         setIsLoading(true);
 
-        const result = await register(email, password, name || undefined);
+        const result = await register(email, password, name || undefined, username, businessName || undefined);
 
         if (result.success) {
             navigate('/dashboard');
@@ -141,7 +143,7 @@ export function RegisterPage() {
                     <form onSubmit={handleRegister} className="space-y-5">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1.5">
-                                Full name <span className="text-slate-400">(optional)</span>
+                                Full Name <span className="text-slate-400">(optional)</span>
                             </label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -151,6 +153,43 @@ export function RegisterPage() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="John Doe"
+                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="username" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Username
+                            </label>
+                            <div className="relative">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    id="username"
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    placeholder="johndoe123"
+                                    className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                                    required
+                                    disabled={isLoading}
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="businessName" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Business Name <span className="text-slate-400">(optional)</span>
+                            </label>
+                            <div className="relative">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                                <input
+                                    id="businessName"
+                                    type="text"
+                                    value={businessName}
+                                    onChange={(e) => setBusinessName(e.target.value)}
+                                    placeholder="Acme Corp"
                                     className="w-full pl-12 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
                                     disabled={isLoading}
                                 />
@@ -209,12 +248,12 @@ export function RegisterPage() {
                                             <div
                                                 key={level}
                                                 className={`h-1 flex-1 rounded-full transition-colors ${passwordStrength >= level
-                                                        ? passwordStrength <= 2
-                                                            ? 'bg-red-400'
-                                                            : passwordStrength === 3
-                                                                ? 'bg-amber-400'
-                                                                : 'bg-green-400'
-                                                        : 'bg-slate-200'
+                                                    ? passwordStrength <= 2
+                                                        ? 'bg-red-400'
+                                                        : passwordStrength === 3
+                                                            ? 'bg-amber-400'
+                                                            : 'bg-green-400'
+                                                    : 'bg-slate-200'
                                                     }`}
                                             />
                                         ))}
@@ -250,8 +289,8 @@ export function RegisterPage() {
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
                                     className={`w-full pl-12 pr-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/20 transition-all ${confirmPassword && confirmPassword !== password
-                                            ? 'border-red-300 focus:border-red-500'
-                                            : 'border-slate-200 focus:border-green-500'
+                                        ? 'border-red-300 focus:border-red-500'
+                                        : 'border-slate-200 focus:border-green-500'
                                         }`}
                                     required
                                     disabled={isLoading}

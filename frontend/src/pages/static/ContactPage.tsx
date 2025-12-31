@@ -32,7 +32,7 @@ export function ContactPage() {
                         Get in Touch
                     </h1>
                     <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                        Have a question, feedback, or just want to say hi? We'd love to hear from you.
+                        Have a question, feedback, or just want to say hi? We&apos;d love to hear from you.
                     </p>
                 </div>
             </section>
@@ -101,7 +101,7 @@ export function ContactPage() {
                                     </div>
                                     <h3 className="text-lg font-bold text-slate-900 mb-1">Message Sent!</h3>
                                     <p className="text-sm text-slate-600">
-                                        Thank you for reaching out. We'll get back to you within 24 hours.
+                                        Thank you for reaching out. We&apos;ll get back to you within 24 hours.
                                     </p>
                                 </div>
                             ) : (

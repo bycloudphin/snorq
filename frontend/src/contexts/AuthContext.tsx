@@ -26,7 +26,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
     loginWithGoogle: (credential: string) => Promise<{ success: boolean; error?: string }>;
-    register: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+    register: (email: string, password: string, name?: string, username?: string, businessName?: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
     refreshToken: () => Promise<boolean>;
 }
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ identifier: email, password }),
             });
 
             const data = await response.json();
@@ -153,13 +153,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
     };
 
-    const register = async (email: string, password: string, name?: string): Promise<{ success: boolean; error?: string }> => {
+    const register = async (email: string, password: string, name?: string, username?: string, businessName?: string): Promise<{ success: boolean; error?: string }> => {
         try {
             const response = await fetch(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({ email, password, name }),
+                body: JSON.stringify({ email, password, name, username, businessName }),
             });
 
             const data = await response.json();

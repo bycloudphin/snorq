@@ -11,10 +11,10 @@ export function AboutPage() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div className="text-center lg:text-left">
                             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-                                We're building the <span className="text-green-500">future</span> of communication.
+                                We&apos;re building the <span className="text-green-500">future</span> of communication.
                             </h1>
                             <p className="text-lg text-slate-600 mb-8 max-w-lg mx-auto lg:mx-0">
-                                SNORQ is on a mission to unify the world's messaging. We help businesses connect with their customers on the platforms they love, all from one place.
+                                SNORQ is on a mission to unify the world&apos;s messaging. We help businesses connect with their customers on the platforms they love, all from one place.
                             </p>
                             <div className="flex flex-wrap justify-center lg:justify-start gap-4">
                                 <Link to="/register" className="btn btn-primary rounded-full px-8 py-3 font-semibold">
@@ -60,7 +60,7 @@ export function AboutPage() {
                                     It started with a simple problem. We were drowning in tabs. WhatsApp on one screen, Messenger on another, TikTok DMs on the phone. We missed messages, lost context, and frustrated our customers.
                                 </p>
                                 <p>
-                                    We realized that while communication channels were multiplying, the tools to manage them remained fragmented. Small businesses didn't need another complex CRM; they needed a simple, unified inbox.
+                                    We realized that while communication channels were multiplying, the tools to manage them remained fragmented. Small businesses didn&apos;t need another complex CRM; they needed a simple, unified inbox.
                                 </p>
                                 <p>
                                     So we built SNORQ. Not just to aggregate messages, but to bring sanity back to business communication.
@@ -146,7 +146,7 @@ export function AboutPage() {
                         Be part of the story.
                     </h2>
                     <p className="text-lg text-slate-600 mb-10">
-                        Join us in redefining how businesses communicate. Whether you're a customer, a partner, or a future team member, we'd love to have you on board.
+                        Join us in redefining how businesses communicate. Whether you&apos;re a customer, a partner, or a future team member, we&apos;d love to have you on board.
                     </p>
                     <div className="flex flex-col sm:flex-row justify-center gap-4">
                         <Link to="/register" className="btn btn-primary rounded-full px-10 py-4 text-base font-bold shadow-xl shadow-green-200">

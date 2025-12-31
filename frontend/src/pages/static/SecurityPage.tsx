@@ -100,7 +100,7 @@ export function SecurityPage() {
                         <div className="p-5 rounded-xl bg-slate-50 border border-slate-100">
                             <h3 className="text-sm font-semibold text-slate-900 mb-1">SOC 2 Type II (In Progress)</h3>
                             <p className="text-xs text-slate-600">
-                                We're working towards SOC 2 Type II certification to demonstrate our commitment to security best practices.
+                                We&apos;re working towards SOC 2 Type II certification to demonstrate our commitment to security best practices.
                             </p>
                         </div>
                     </div>
@@ -117,7 +117,7 @@ export function SecurityPage() {
                         Found a Security Issue?
                     </h2>
                     <p className="text-sm text-slate-600 mb-4">
-                        We take security vulnerabilities seriously. If you've discovered a security issue, please report it responsibly.
+                        We take security vulnerabilities seriously. If you&apos;ve discovered a security issue, please report it responsibly.
                     </p>
                     <a
                         href="mailto:security@snorq.xyz"

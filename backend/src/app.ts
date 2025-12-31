@@ -6,7 +6,9 @@ import rateLimit from '@fastify/rate-limit';
 import { logger } from './utils/logger.js';
 import { healthRoutes } from './routes/health.js';
 import { authRoutes } from './routes/auth.js';
+import { metaRoutes } from './routes/meta.js';
 import { newsletterRoutes } from './routes/newsletter.js';
+import { conversationRoutes } from './routes/conversations.js';
 
 export async function buildApp(): Promise<FastifyInstance> {
     const app = Fastify({
@@ -30,6 +32,12 @@ export async function buildApp(): Promise<FastifyInstance> {
     await app.register(cookie, {
         secret: process.env.JWT_SECRET,
         hook: 'onRequest',
+        parseOptions: {
+            secure: process.env.NODE_ENV === 'production' || process.env.FRONTEND_URL?.includes('https'),
+            sameSite: 'none', // Required for cross-site cookie usage
+            path: '/',
+            httpOnly: true
+        }
     });
 
     // Rate limiting
@@ -60,7 +68,9 @@ export async function buildApp(): Promise<FastifyInstance> {
     // Register routes
     await app.register(healthRoutes, { prefix: '/api/v1' });
     await app.register(authRoutes, { prefix: '/api/v1' });
+    await app.register(metaRoutes, { prefix: '/api/v1' });
     await app.register(newsletterRoutes, { prefix: '/api/v1' });
+    await app.register(conversationRoutes, { prefix: '/api/v1' });
 
     // Error handler
     app.setErrorHandler((error, request, reply) => {

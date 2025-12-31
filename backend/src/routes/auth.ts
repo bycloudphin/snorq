@@ -19,12 +19,14 @@ const PLAN_MEMBER_LIMITS: Record<PlanType, number> = {
 // Validation schemas
 const registerSchema = z.object({
     email: z.string().email('Invalid email address'),
+    username: z.string().min(3, 'Username must be at least 3 characters'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     name: z.string().min(1, 'Name is required').optional(),
+    businessName: z.string().optional(),
 });
 
 const loginSchema = z.object({
-    email: z.string().email('Invalid email address'),
+    identifier: z.string().min(3, 'Username or Email is required'),
     password: z.string().min(1, 'Password is required'),
 });
 
@@ -41,12 +43,14 @@ const addMemberSchema = z.object({
 // Types
 interface RegisterBody {
     email: string;
+    username: string;
     password: string;
     name?: string;
+    businessName?: string;
 }
 
 interface LoginBody {
-    email: string;
+    identifier: string; // username or email
     password: string;
 }
 
@@ -86,9 +90,9 @@ async function saveRefreshToken(userId: string, token: string): Promise<void> {
 }
 
 // Helper to create organization for new user
-async function createDefaultOrganization(userId: string, userName: string | null, userEmail: string): Promise<void> {
-    // Generate a unique slug from email
-    const baseSlug = userEmail.split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '-');
+async function createDefaultOrganization(userId: string, businessName: string | null, userName: string | null, username: string): Promise<void> {
+    // Determine slug from username or business name
+    const baseSlug = (username || businessName || userName || '').toLowerCase().replace(/[^a-z0-9]/g, '-');
     let slug = baseSlug;
     let counter = 1;
 
@@ -101,7 +105,7 @@ async function createDefaultOrganization(userId: string, userName: string | null
     // Create organization with user as owner
     await prisma.organization.create({
         data: {
-            name: userName ? `${userName}'s Workspace` : `My Workspace`,
+            name: businessName || (userName ? `${userName}'s Workspace` : `My Workspace`),
             slug,
             plan: PlanType.FREE,
             ownerId: userId,
@@ -145,19 +149,28 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
                 });
             }
 
-            const { email, password, name } = validation.data;
+            const { email, username, password, name, businessName } = validation.data;
 
-            // Check if user already exists
-            const existingUser = await prisma.user.findUnique({
-                where: { email },
+            // Check if user already exists (email or username)
+            const existingUser = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { email },
+                        { username }
+                    ]
+                },
             });
 
             if (existingUser) {
+                const message = existingUser.email === email
+                    ? 'User with this email already exists'
+                    : 'Username is already taken';
+
                 return reply.status(409).send({
                     success: false,
                     error: {
                         code: 409,
-                        message: 'User with this email already exists',
+                        message,
                     },
                 });
             }
@@ -169,24 +182,30 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
             const user = await prisma.user.create({
                 data: {
                     email,
+                    username,
                     passwordHash,
                     name,
                 },
             });
 
             // Create default organization for new user
-            await createDefaultOrganization(user.id, name || null, email);
+            await createDefaultOrganization(user.id, businessName || null, name || null, username);
+
+            // Fetch created organization to return its ID (Business ID)
+            const orgMember = await prisma.organizationMember.findFirst({
+                where: { userId: user.id },
+                include: { organization: true }
+            });
 
             // Generate tokens
             const accessToken = generateAccessToken(user.id, user.email);
             const refreshToken = generateRefreshToken();
             await saveRefreshToken(user.id, refreshToken);
 
-            // Set refresh token as httpOnly cookie
             reply.setCookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production' || process.env.FRONTEND_URL?.includes('https') || true,
+                sameSite: 'none',
                 path: '/',
                 maxAge: 7 * 24 * 60 * 60, // 7 days
             });
@@ -197,9 +216,11 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
                     user: {
                         id: user.id,
                         email: user.email,
+                        username: user.username,
                         name: user.name,
                         avatarUrl: user.avatarUrl,
                     },
+                    businessId: orgMember?.organization.id,
                     accessToken,
                 },
             });
@@ -215,7 +236,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
         }
     });
 
-    // Login with email/password
+    // Login with username/email and password
     app.post('/auth/login', async (request: FastifyRequest<{ Body: LoginBody }>, reply: FastifyReply) => {
         try {
             const validation = loginSchema.safeParse(request.body);
@@ -230,11 +251,22 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
                 });
             }
 
-            const { email, password } = validation.data;
+            const { identifier, password } = validation.data;
 
-            // Find user
-            const user = await prisma.user.findUnique({
-                where: { email },
+            // Find user by email OR username
+            const user = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { email: identifier },
+                        { username: identifier }
+                    ]
+                },
+                include: {
+                    memberships: {
+                        include: { organization: true },
+                        take: 1 // For now, just grab the primary org
+                    }
+                }
             });
 
             if (!user || !user.passwordHash) {
@@ -242,7 +274,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
                     success: false,
                     error: {
                         code: 401,
-                        message: 'Invalid email or password',
+                        message: 'Invalid credentials',
                     },
                 });
             }
@@ -254,7 +286,7 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
                     success: false,
                     error: {
                         code: 401,
-                        message: 'Invalid email or password',
+                        message: 'Invalid credentials',
                     },
                 });
             }
@@ -273,15 +305,19 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
                 maxAge: 7 * 24 * 60 * 60,
             });
 
+            const primaryOrg = user.memberships[0]?.organization;
+
             return reply.send({
                 success: true,
                 data: {
                     user: {
                         id: user.id,
                         email: user.email,
+                        username: user.username,
                         name: user.name,
                         avatarUrl: user.avatarUrl,
                     },
+                    businessId: primaryOrg?.id,
                     accessToken,
                 },
             });
@@ -381,7 +417,9 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
 
             // If new user, create default organization
             if (isNewUser) {
-                await createDefaultOrganization(user.id, name || null, email);
+                // Use email prefix as fallback username for google auth users
+                const fallbackUsername = email.split('@')[0];
+                await createDefaultOrganization(user.id, null, name || null, fallbackUsername);
             }
 
             // Get user's organizations
@@ -407,8 +445,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
             // Set refresh token as httpOnly cookie
             reply.setCookie('refreshToken', refreshToken, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
+                secure: process.env.NODE_ENV === 'production' || process.env.FRONTEND_URL?.includes('https') || true,
+                sameSite: 'none',
                 path: '/',
                 maxAge: 7 * 24 * 60 * 60,
             });
@@ -632,6 +670,55 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
             });
         } catch (error) {
             console.error('Get members error:', error);
+            return reply.status(500).send({
+                success: false,
+                error: { code: 500, message: 'Internal server error' },
+            });
+        }
+    });
+
+    // Get organization integrations
+    app.get('/organizations/:organizationId/integrations', async (request: FastifyRequest<{ Params: { organizationId: string } }>, reply: FastifyReply) => {
+        try {
+            const decoded = await verifyToken(request.headers.authorization);
+            if (!decoded) {
+                return reply.status(401).send({
+                    success: false,
+                    error: { code: 401, message: 'Authentication required' },
+                });
+            }
+
+            const { organizationId } = request.params;
+
+            // Check if user is a member
+            const membership = await prisma.organizationMember.findFirst({
+                where: { organizationId, userId: decoded.userId },
+            });
+
+            if (!membership) {
+                return reply.status(403).send({
+                    success: false,
+                    error: { code: 403, message: 'You are not a member of this organization' },
+                });
+            }
+
+            const connections = await prisma.platformConnection.findMany({
+                where: { organizationId },
+                select: {
+                    id: true,
+                    platform: true,
+                    platformUsername: true,
+                    status: true,
+                    createdAt: true
+                }
+            });
+
+            return reply.send({
+                success: true,
+                data: { connections }
+            });
+        } catch (error) {
+            console.error('Get integrations error:', error);
             return reply.status(500).send({
                 success: false,
                 error: { code: 500, message: 'Internal server error' },

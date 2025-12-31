@@ -112,7 +112,7 @@ export function LandingPage() {
                                 </div>
                                 {isSubmitted && (
                                     <p className="text-green-600 text-sm mt-3 animate-fade-in">
-                                        🎉 You're on the list! We'll notify you when SNORQ launches.
+                                        🎉 You&apos;re on the list! We&apos;ll notify you when SNORQ launches.
                                     </p>
                                 )}
                             </form>
@@ -297,7 +297,7 @@ export function LandingPage() {
                             Get started in minutes
                         </h2>
                         <p className="text-body max-w-2xl mx-auto">
-                            Simple setup, powerful results. Here's how SNORQ transforms your workflow.
+                            Simple setup, powerful results. Here&apos;s how SNORQ transforms your workflow.
                         </p>
                     </div>
 
@@ -365,7 +365,7 @@ export function LandingPage() {
                     </form>
 
                     <p className="text-sm text-slate-500 mt-6">
-                        🔒 No spam, ever. We'll only email you about the launch.
+                        🔒 No spam, ever. We&apos;ll only email you about the launch.
                     </p>
                 </div>
             </section>

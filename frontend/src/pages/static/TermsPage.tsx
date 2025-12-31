@@ -51,7 +51,7 @@ export function TermsPage() {
                                 <li>Send spam, unsolicited messages, or bulk messaging</li>
                                 <li>Harass, abuse, or harm others</li>
                                 <li>Transmit malware, viruses, or harmful code</li>
-                                <li>Attempt to access other users' accounts or data</li>
+                                <li>Attempt to access other users&apos; accounts or data</li>
                                 <li>Interfere with the proper functioning of the service</li>
                                 <li>Scrape, copy, or collect data without permission</li>
                                 <li>Use the service for any illegal or fraudulent purposes</li>
@@ -65,8 +65,8 @@ export function TermsPage() {
                             </p>
                             <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
                                 <li>Authorize SNORQ to access your messages and account information</li>
-                                <li>Agree to comply with each platform's terms of service</li>
-                                <li>Understand that SNORQ's access depends on third-party APIs</li>
+                                <li>Agree to comply with each platform&apos;s terms of service</li>
+                                <li>Understand that SNORQ&apos;s access depends on third-party APIs</li>
                                 <li>Accept that service availability may be affected by platform changes</li>
                             </ul>
                         </section>
@@ -105,7 +105,7 @@ export function TermsPage() {
                         <section>
                             <h2 className="text-lg font-bold text-slate-900 mb-3">7. Disclaimer of Warranties</h2>
                             <p className="text-sm text-slate-600 leading-relaxed">
-                                SNORQ is provided "as is" and "as available" without warranties of any kind, either express or implied. We do not guarantee that the service will be uninterrupted, secure, or error-free. We are not responsible for message delivery failures caused by third-party platforms.
+                                SNORQ is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, either express or implied. We do not guarantee that the service will be uninterrupted, secure, or error-free. We are not responsible for message delivery failures caused by third-party platforms.
                             </p>
                         </section>
 
