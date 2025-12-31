@@ -37,8 +37,8 @@ export function LandingPage() {
 
             if (data.success) {
                 setIsSubmitted(true);
-                setEmail('');
-                setTimeout(() => setIsSubmitted(false), 5000);
+                // Don't clear email immediately so we can display it
+                // setEmail(''); 
             } else {
                 console.error('Subscription failed:', data.error);
                 // Optional: You could set an error state here to show to the user
@@ -74,48 +74,58 @@ export function LandingPage() {
                             </p>
 
                             {/* Email Subscription Form */}
-                            <form onSubmit={handleSubscribe} className="animate-slide-up stagger-2">
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <div className="flex-1 relative">
-                                        <input
-                                            type="email"
-                                            placeholder="Enter your email"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className="input input-lg pr-4 rounded-full"
-                                            required
-                                            disabled={isLoading}
-                                        />
+                            {isSubmitted ? (
+                                <div className="animate-fade-in p-6 bg-green-50/80 backdrop-blur border border-green-200 rounded-2xl flex gap-4">
+                                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shrink-0">
+                                        <Check className="w-5 h-5 text-green-600" />
                                     </div>
-                                    <button
-                                        type="submit"
-                                        disabled={isLoading}
-                                        className="btn btn-primary rounded-full px-8 py-4 text-base font-semibold whitespace-nowrap group disabled:opacity-70 disabled:cursor-not-allowed"
-                                    >
-                                        {isLoading ? (
-                                            <span className="flex items-center gap-2">
-                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Joining...
-                                            </span>
-                                        ) : isSubmitted ? (
-                                            <>
-                                                <Check className="w-5 h-5" />
-                                                Subscribed!
-                                            </>
-                                        ) : (
-                                            <>
-                                                Get Notified
-                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                            </>
-                                        )}
-                                    </button>
+                                    <div>
+                                        <h3 className="font-bold text-green-900 text-lg mb-1">You&apos;re on the list! 🚀</h3>
+                                        <p className="text-green-800 leading-relaxed">
+                                            Thanks for joining. We&apos;ve sent a confirmation email to <span className="font-semibold">{email}</span>. We&apos;ll keep you posted!
+                                        </p>
+                                        <button
+                                            onClick={() => { setIsSubmitted(false); setEmail(''); }}
+                                            className="text-sm font-semibold text-green-700 hover:text-green-800 mt-3 underline decoration-green-300 underline-offset-4"
+                                        >
+                                            Add another email
+                                        </button>
+                                    </div>
                                 </div>
-                                {isSubmitted && (
-                                    <p className="text-green-600 text-sm mt-3 animate-fade-in">
-                                        🎉 You&apos;re on the list! We&apos;ll notify you when SNORQ launches.
-                                    </p>
-                                )}
-                            </form>
+                            ) : (
+                                <form onSubmit={handleSubscribe} className="animate-slide-up stagger-2">
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="email"
+                                                placeholder="Enter your email"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                className="input input-lg pr-4 rounded-full"
+                                                required
+                                                disabled={isLoading}
+                                            />
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={isLoading}
+                                            className="btn btn-primary rounded-full px-8 py-4 text-base font-semibold whitespace-nowrap group disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {isLoading ? (
+                                                <span className="flex items-center gap-2">
+                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                    Joining...
+                                                </span>
+                                            ) : (
+                                                <>
+                                                    Get Notified
+                                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
 
                             {/* Stats */}
                             <div className="mt-12 pt-8 border-t border-slate-100 animate-slide-up stagger-3">

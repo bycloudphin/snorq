@@ -2,7 +2,13 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { PrismaClient } from '@prisma/client';
 import { z } from 'zod';
 
+import { Resend } from 'resend';
+
 const prisma = new PrismaClient();
+
+// Initialize Resend safely
+const resendApiKey = process.env.RESEND_API_KEY;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Validation schema
 const subscribeSchema = z.object({
@@ -30,15 +36,41 @@ export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
 
             const { email } = validation.data;
 
-            // Use upsert to handle duplicate subscriptions (if they already exist, just update updated_at)
+            // Use upsert to handle duplicate subscriptions
             await prisma.newsletterSubscriber.upsert({
                 where: { email },
-                update: { isActive: true }, // Re-activate if they unsubscribed previously (logic implies they want to sub again)
+                update: { isActive: true },
                 create: {
                     email,
                     isActive: true,
                 },
             });
+
+            // Send Welcome Email
+            if (resend) {
+                try {
+                    await resend.emails.send({
+                        from: 'SNORQ <welcome@snorq.xyz>', // Update with verified domain later
+                        to: email,
+                        subject: 'Welcome to the SNORQ Waiting List! 🚀',
+                        html: `
+                            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+                                <h1 style="color: #10b981;">Welcome to SNORQ!</h1>
+                                <p>Thanks for joining our waiting list. We're building the future of unified messaging, and we're thrilled to have you with us.</p>
+                                <p>We'll notify you as soon as we launch. In the meantime, feel free to reply to this email if you have any questions.</p>
+                                <br/>
+                                <p>Best,</p>
+                                <p>The SNORQ Team</p>
+                            </div>
+                        `
+                    });
+                } catch (emailError) {
+                    // Log but don't fail the request
+                    console.error('Failed to send welcome email:', emailError);
+                }
+            } else {
+                console.warn('RESEND_API_KEY is missing. Skipping welcome email.');
+            }
 
             return reply.status(200).send({
                 success: true,
