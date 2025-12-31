@@ -20,7 +20,7 @@ interface SubscribeBody {
 }
 
 export async function newsletterRoutes(app: FastifyInstance): Promise<void> {
-    app.post('/newsletter/subscribe', async (request: FastifyRequest<{ Body: SubscribeBody }>, reply: FastifyReply) => {
+    app.post('/waitlist/join', async (request: FastifyRequest<{ Body: SubscribeBody }>, reply: FastifyReply) => {
         try {
             const validation = subscribeSchema.safeParse(request.body);
             if (!validation.success) {

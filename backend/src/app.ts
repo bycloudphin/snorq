@@ -23,7 +23,11 @@ export async function buildApp(): Promise<FastifyInstance> {
 
     // CORS
     await app.register(cors, {
-        origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+        origin: [
+            process.env.FRONTEND_URL || 'http://localhost:5173',
+            'https://snorq.xyz',
+            'https://www.snorq.xyz'
+        ],
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     });
