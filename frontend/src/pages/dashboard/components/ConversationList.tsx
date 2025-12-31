@@ -72,7 +72,7 @@ export function ConversationList() {
     );
 }
 
-function ConversationItem({ name, message, time, unread, platform, active }: any) {
+function ConversationItem({ name, message, time, unread, active }: any) {
     return (
         <div className={`flex items-center gap-3 p-4 mx-2 rounded-xl cursor-pointer transition-colors ${active ? 'bg-green-50' : 'hover:bg-slate-50'}`}>
             <div className="relative shrink-0">

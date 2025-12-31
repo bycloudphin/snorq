@@ -23,7 +23,6 @@ export function FacebookCallbackPage() {
     const [status, setStatus] = useState<'loading' | 'selecting_page' | 'connecting' | 'success' | 'error'>('loading');
     const [error, setError] = useState<string | null>(null);
     const [pages, setPages] = useState<MetaPage[]>([]);
-    const [userAccessToken, setUserAccessToken] = useState<string | null>(null);
 
     useEffect(() => {
         const code = searchParams.get('code');
@@ -53,7 +52,6 @@ export function FacebookCallbackPage() {
 
             if (data.success) {
                 setPages(data.data.pages);
-                setUserAccessToken(data.data.userAccessToken);
                 setStatus('selecting_page');
             } else {
                 setStatus('error');

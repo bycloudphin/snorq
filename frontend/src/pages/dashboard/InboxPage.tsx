@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { Search, Send, Phone, Video, MoreVertical, Paperclip, Smile } from 'lucide-react';
 import { format } from 'date-fns';

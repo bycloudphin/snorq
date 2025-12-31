@@ -1,4 +1,4 @@
-import { Phone, Video, Info, Paperclip, Smile, Send, MoreHorizontal } from 'lucide-react';
+import { Phone, Video, Info, Paperclip, Smile, Send } from 'lucide-react';
 
 export function ChatArea() {
     return (
@@ -125,8 +125,8 @@ function MessageBubble({ text, time, isIncoming, isOutgoing, status }: MessageBu
             )}
             <div className={`max-w-[70%] ${isOutgoing ? 'order-1' : 'order-2'}`}>
                 <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed shadow-sm ${isOutgoing
-                        ? 'bg-slate-900 text-white rounded-br-none'
-                        : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
+                    ? 'bg-slate-900 text-white rounded-br-none'
+                    : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
                     }`}>
                     {text}
                 </div>
