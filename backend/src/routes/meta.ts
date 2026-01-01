@@ -4,7 +4,10 @@ import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
+import { SocketService } from '../socket/SocketService';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
+
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
 const FACEBOOK_REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:5173/dashboard/settings/integrations/facebook/callback';
@@ -370,7 +373,16 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
                             }
                         });
 
+
                         console.log(`✅ Message saved to DB: ${newMessage.id}`);
+
+                        // 4. Emit Real-time Event
+                        SocketService.getInstance().emitToOrganization(platformConnection.organizationId, 'new_message', {
+                            conversationId: conversation.id,
+                            message: newMessage,
+                            conversation: conversation // Optional: update conversation list previews
+                        });
+
 
                     } catch (error) {
                         console.error('❌ Error processing webhook event:', error);

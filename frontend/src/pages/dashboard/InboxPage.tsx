@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSocket } from '../../contexts/SocketContext';
 import { Search, Send, Phone, Video, MoreVertical, Paperclip, Smile } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -22,6 +23,8 @@ interface Message {
 
 export function InboxPage() {
     const { accessToken, organizations } = useAuth();
+    const { socket } = useSocket();
+
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -56,17 +59,62 @@ export function InboxPage() {
         }
 
         fetchConversations();
-        // Poll every 10 seconds for new conversations/messages
-        const interval = setInterval(fetchConversations, 10000);
-        return () => clearInterval(interval);
     }, [organizationId, accessToken, API_URL]);
+
+    // WebSocket Listener for New Messages
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNewMessage = (data: { conversationId: string, message: any, conversation?: any }) => {
+            console.log('socket event: new_message', data);
+
+            // 1. Update Messages list if this is the active conversation
+            if (selectedConversationId === data.conversationId) {
+                setMessages((prev) => {
+                    // Avoid duplicates
+                    if (prev.some(m => m.id === data.message.id)) return prev;
+                    return [...prev, data.message];
+                });
+            }
+
+            // 2. Update Conversations list (move to top, update preview)
+            setConversations((prev) => {
+                const existingConvIndex = prev.findIndex(c => c.id === data.conversationId);
+                let newConvs = [...prev];
+
+                if (existingConvIndex !== -1) {
+                    const conv = { ...newConvs[existingConvIndex] };
+                    conv.lastMessagePreview = data.message.content;
+                    conv.lastMessageAt = data.message.createdAt;
+
+                    // Increment unread if not currently selected
+                    if (selectedConversationId !== data.conversationId) {
+                        conv.unreadCount += 1;
+                    }
+
+                    // Remove from old position and add to top
+                    newConvs.splice(existingConvIndex, 1);
+                    newConvs.unshift(conv);
+                } else if (data.conversation) {
+                    // New conversation, add to top
+                    newConvs.unshift(data.conversation);
+                }
+                return newConvs;
+            });
+        };
+
+        socket.on('new_message', handleNewMessage);
+
+        return () => {
+            socket.off('new_message', handleNewMessage);
+        };
+    }, [socket, selectedConversationId]);
 
     // Fetch Messages when conversation selected
     useEffect(() => {
         if (!selectedConversationId || !accessToken) return;
 
         async function fetchMessages() {
-            // setIsLoadingMessages(true);
             try {
                 const res = await fetch(`${API_URL}/conversations/${selectedConversationId}/messages`, {
                     headers: { 'Authorization': `Bearer ${accessToken}` }
@@ -77,15 +125,10 @@ export function InboxPage() {
                 }
             } catch (error) {
                 console.error('Failed to fetch messages', error);
-            } finally {
-                // setIsLoadingMessages(false);
             }
         }
 
         fetchMessages();
-        // Poll for new messages every 3 seconds
-        const interval = setInterval(fetchMessages, 3000);
-        return () => clearInterval(interval);
     }, [selectedConversationId, accessToken, API_URL]);
 
     // Scroll to bottom when messages change
