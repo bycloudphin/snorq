@@ -21,6 +21,9 @@ COPY . .
 # Build TypeScript
 RUN npm run build
 
+# Also compile the seed script
+RUN npx tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop --skipLibCheck --resolveJsonModule
+
 # Production stage
 FROM node:20-alpine AS production
 

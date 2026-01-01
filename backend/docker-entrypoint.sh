@@ -10,6 +10,15 @@ RETRY_COUNT=0
 while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
     if npx prisma migrate deploy 2>/dev/null; then
         echo "Database migration successful!"
+        
+        # Run seed script (compiled JS version)
+        echo "Running database seed..."
+        if [ -f "dist/prisma/seed.js" ]; then
+            node dist/prisma/seed.js || echo "Seed script completed (may have already seeded)"
+        else
+            echo "Seed script not found, skipping..."
+        fi
+        
         break
     else
         RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -24,3 +33,4 @@ fi
 
 echo "Starting server..."
 exec node dist/server.js
+
