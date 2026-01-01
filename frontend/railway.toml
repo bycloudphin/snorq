@@ -3,6 +3,14 @@
 [build]
 builder = "dockerfile"
 dockerfilePath = "Dockerfile"
+# Pass environment variables as Docker build arguments
+dockerBuildArgs = [
+    "VITE_API_URL",
+    "VITE_WS_URL",
+    "VITE_APP_NAME",
+    "VITE_APP_DESCRIPTION",
+    "VITE_GOOGLE_CLIENT_ID"
+]
 
 [deploy]
 restartPolicyType = "on_failure"
