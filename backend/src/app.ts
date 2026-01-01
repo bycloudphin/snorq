@@ -23,11 +23,23 @@ export async function buildApp(): Promise<FastifyInstance> {
 
     // CORS
     await app.register(cors, {
-        origin: [
-            process.env.FRONTEND_URL || 'http://localhost:5173',
-            'https://snorq.xyz',
-            'https://www.snorq.xyz'
-        ],
+        origin: (origin, cb) => {
+            const allowedOrigins = [
+                process.env.FRONTEND_URL,
+                'http://localhost:5173',
+                'https://localhost:5173',
+                'https://snorq.xyz',
+                'https://www.snorq.xyz'
+            ].filter(Boolean) as string[];
+
+            if (!origin || allowedOrigins.some(allowed => allowed === origin || allowed?.replace(/\/$/, '') === origin)) {
+                cb(null, true);
+                return;
+            }
+
+            console.log(`[CORS] Blocked origin: ${origin}`);
+            cb(new Error("Not allowed"), false);
+        },
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     });

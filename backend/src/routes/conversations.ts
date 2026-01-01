@@ -4,6 +4,8 @@ import { PrismaClient } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
+import { FacebookService } from '../services/platform/FacebookService';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
 async function verifyToken(authHeader: string | undefined): Promise<{ userId: string; email: string } | null> {
@@ -131,53 +133,45 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                 }
             });
 
+
+
             // 3. Send to Facebook
+
             if (conversation.platform === 'FACEBOOK') {
-                const pageAccessToken = conversation.platformConnection.accessToken;
-                const recipientId = conversation.externalId; // PSID
+                const facebookService = new FacebookService();
+                try {
+                    const result = await facebookService.sendMessage(
+                        conversation.platformConnection,
+                        conversation.externalId,
+                        content
+                    );
 
-                const fbUrl = `https://graph.facebook.com/v18.0/me/messages?access_token=${pageAccessToken}`;
-                const payload = {
-                    recipient: { id: recipientId },
-                    message: { text: content },
-                    messaging_type: "RESPONSE"
-                };
-
-                const fbRes = await fetch(fbUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const fbData = await fbRes.json() as any;
-
-                if (fbData.error) {
-                    console.error('Facebook Send Error:', fbData.error);
+                    // 4. Update Message Status
                     await prisma.message.update({
                         where: { id: message.id },
-                        data: { status: 'FAILED' } // Should store error details ideally
+                        data: {
+                            status: 'SENT',
+                            externalId: result.externalId
+                        }
                     });
-                    throw new Error(fbData.error.message);
+
+                    // Update Conversation Last Message
+                    await prisma.conversation.update({
+                        where: { id: conversation.id },
+                        data: {
+                            lastMessageAt: new Date(),
+                            lastMessagePreview: `You: ${content}`,
+                            status: 'OPEN'
+                        }
+                    });
+
+                } catch (error) {
+                    await prisma.message.update({
+                        where: { id: message.id },
+                        data: { status: 'FAILED' }
+                    });
+                    throw error;
                 }
-
-                // 4. Update Message Status
-                await prisma.message.update({
-                    where: { id: message.id },
-                    data: {
-                        status: 'SENT',
-                        externalId: fbData.message_id
-                    }
-                });
-
-                // Update Conversation Last Message
-                await prisma.conversation.update({
-                    where: { id: conversation.id },
-                    data: {
-                        lastMessageAt: new Date(),
-                        lastMessagePreview: `You: ${content}`,
-                        status: 'OPEN'
-                    }
-                });
             }
 
             return reply.send({

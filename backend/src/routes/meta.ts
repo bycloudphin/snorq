@@ -276,6 +276,7 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
                     console.log(`Processing message from ${senderId} to ${recipientId}`);
 
                     try {
+
                         // 1. Find the PlatformConnection for this Page
                         const platformConnection = await prisma.platformConnection.findFirst({
                             where: {
@@ -294,6 +295,23 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
 
                         console.log(`✅ Found PlatformConnection: ${platformConnection.id}`);
 
+                        // Fetch User Profile from Facebook
+                        let contactName = `User ${senderId.slice(0, 5)}`;
+                        let contactAvatarUrl = null;
+
+                        try {
+                            const profileUrl = `https://graph.facebook.com/v18.0/${senderId}?fields=first_name,last_name,profile_pic&access_token=${platformConnection.accessToken}`;
+                            const profileRes = await fetch(profileUrl);
+                            const profileData = await profileRes.json() as any;
+
+                            if (!profileData.error) {
+                                contactName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || contactName;
+                                contactAvatarUrl = profileData.profile_pic;
+                            }
+                        } catch (err) {
+                            console.error('Failed to fetch FB profile:', err);
+                        }
+
                         // 2. Find or Create Conversation
                         let conversation = await prisma.conversation.findUnique({
                             where: {
@@ -311,7 +329,8 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
                                     platform: Platform.FACEBOOK,
                                     externalId: senderId,
                                     contactExternalId: senderId,
-                                    contactName: `User ${senderId.slice(0, 5)}`,
+                                    contactName,
+                                    contactAvatarUrl,
                                     platformConnectionId: platformConnection.id,
                                     organizationId: platformConnection.organizationId,
                                     status: 'OPEN',
@@ -329,7 +348,10 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
                                     unreadCount: { increment: 1 },
                                     lastMessageAt: new Date(timestamp),
                                     lastMessagePreview: messageText,
-                                    status: 'OPEN'
+                                    status: 'OPEN',
+                                    // Update profile info periodically? optional
+                                    contactName: contactName !== `User ${senderId.slice(0, 5)}` ? contactName : undefined,
+                                    contactAvatarUrl: contactAvatarUrl || undefined
                                 }
                             });
                         }

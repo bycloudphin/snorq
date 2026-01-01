@@ -82,8 +82,8 @@
 ## 🚀 MVP Scope (Phase 1)
 
 ### ✅ Included in MVP
-- [ ] User authentication (Google OAuth)
-- [ ] Unified inbox dashboard
+- [] User authentication (Google OAuth)
+- [x] Unified inbox dashboard
 - [ ] TikTok DM integration
 - [ ] WhatsApp Business integration
 - [ ] Facebook Messenger integration
@@ -93,7 +93,7 @@
 - [ ] Conversation view with message thread
 - [ ] Platform indicator for each conversation
 - [ ] Basic search functionality
-- [ ] Responsive web design
+- [x] Responsive web design
 
 ### 🔜 Post-MVP Features (Phase 2+)
 - [ ] Media upload (images, videos, files)
