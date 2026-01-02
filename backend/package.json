@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "npm run db:generate && tsc && npx tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop --skipLibCheck --resolveJsonModule",
-        "start": "npm run db:migrate && (node dist/prisma/seed.js || true) && node dist/server.js",
+        "start": "echo '--- Starting db:migrate ---' && npm run db:migrate && echo '--- db:migrate finished ---' && echo '--- Starting seed (ignoring errors) ---' && (node dist/prisma/seed.js || echo 'Seed failed/skipped') && echo '--- seed finished ---' && echo '--- Starting server ---' && node dist/server.js",
         "lint": "eslint src --ext .ts",
         "lint:fix": "eslint src --ext .ts --fix",
         "format": "prettier --write \"src/**/*.ts\"",
