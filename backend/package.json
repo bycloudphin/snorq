@@ -6,7 +6,7 @@
     "scripts": {
         "dev": "tsx watch src/server.ts",
         "build": "npm run db:generate && tsc && npx tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop --skipLibCheck --resolveJsonModule",
-        "start": "node dist/prisma/seed.js || true && node dist/server.js",
+        "start": "prisma migrate deploy && (node dist/prisma/seed.js || true) && node dist/server.js",
         "lint": "eslint src --ext .ts",
         "lint:fix": "eslint src --ext .ts --fix",
         "format": "prettier --write \"src/**/*.ts\"",
