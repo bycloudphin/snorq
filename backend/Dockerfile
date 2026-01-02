@@ -16,11 +16,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Build TypeScript
-RUN npm run build
+# Generate Prisma client and build TypeScript
+RUN npx prisma generate && npm run build
 
 # Remove development dependencies to keep image small
 RUN npm prune --production
