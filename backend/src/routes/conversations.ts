@@ -108,14 +108,12 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
             }
 
             const { organizationId } = request.params;
-
-            // TODO: Verify user belongs to organization
+            console.log(`[FETCH] Fetching conversations for Org: ${organizationId} (Requested by User: ${decoded.userId})`);
 
             // Fetch conversations
             const conversations = await prisma.conversation.findMany({
                 where: {
                     organizationId,
-                    // status: 'OPEN' // Optional: filter by status
                 },
                 orderBy: {
                     updatedAt: 'desc'
@@ -130,7 +128,7 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                 }
             });
 
-            console.log(`Found ${conversations.length} conversations for org ${organizationId}`);
+            console.log(`[FETCH] Found ${conversations.length} conversations for org ${organizationId}`);
 
             return reply.send({
                 success: true,
