@@ -87,9 +87,7 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
             'public_profile',
             'pages_show_list',
             'pages_messaging',
-            'pages_manage_metadata',
-            'instagram_basic',
-            'instagram_manage_messages'
+            'pages_manage_metadata'
         ].join(',');
 
         const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopes}&response_type=code`;
