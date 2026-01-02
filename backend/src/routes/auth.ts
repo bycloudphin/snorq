@@ -1,13 +1,14 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaClient, PlanType, MemberRole } from '@prisma/client';
+import { PlanType, MemberRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { OAuth2Client } from 'google-auth-library';
 import { z } from 'zod';
 import crypto from 'crypto';
+import { prisma } from '../utils/db.js';
 
-const prisma = new PrismaClient();
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 
 // Plan member limits
 const PLAN_MEMBER_LIMITS: Record<PlanType, number> = {

@@ -1,8 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/db.js';
 import Redis from 'ioredis';
 
-const prisma = new PrismaClient();
 
 export const healthRoutes: FastifyPluginAsync = async (fastify) => {
     // Simple alive endpoint - bypasses all dependencies
@@ -36,7 +35,7 @@ export const healthRoutes: FastifyPluginAsync = async (fastify) => {
 
         // Check database connection with timeout
         try {
-            const timeoutPromise = new Promise((_, reject) => 
+            const timeoutPromise = new Promise((_, reject) =>
                 setTimeout(() => reject(new Error('Database timeout')), 5000)
             );
             await Promise.race([
@@ -58,7 +57,7 @@ export const healthRoutes: FastifyPluginAsync = async (fastify) => {
                     lazyConnect: true,
                     connectTimeout: 5000,
                 });
-                const timeoutPromise = new Promise((_, reject) => 
+                const timeoutPromise = new Promise((_, reject) =>
                     setTimeout(() => reject(new Error('Redis timeout')), 5000)
                 );
                 await Promise.race([redis.ping(), timeoutPromise]);

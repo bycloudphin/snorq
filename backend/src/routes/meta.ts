@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaClient, Platform, ConnectionStatus } from '@prisma/client';
+import { Platform, ConnectionStatus } from '@prisma/client';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
-
-const prisma = new PrismaClient();
+import { prisma } from '../utils/db.js';
 import { SocketService } from '../socket/SocketService';
+
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 

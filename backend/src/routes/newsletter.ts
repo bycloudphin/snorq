@@ -1,10 +1,9 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../utils/db.js';
 import { z } from 'zod';
 
 import { Resend } from 'resend';
 
-const prisma = new PrismaClient();
 
 // Initialize Resend safely
 const resendApiKey = process.env.RESEND_API_KEY;
