@@ -45,12 +45,12 @@ COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Set environment variables
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
-ENV PORT=3000
+ENV PORT=8080
 
 # Node.js memory optimization for Railway/resource-constrained environments
 # Increased slightly for better stability
