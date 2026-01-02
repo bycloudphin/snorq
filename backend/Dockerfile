@@ -25,34 +25,35 @@ RUN npm prune --production
 # Production stage
 FROM node:20-alpine AS production
 
-# Install OpenSSL for Prisma runtime
 RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copy production node_modules from builder
-COPY --from=builder /app/node_modules ./node_modules
-# Copy built files
-COPY --from=builder /app/dist ./dist
-# Copy package.json (needed for scripts/metadata)
-COPY --from=builder /app/package.json ./
-# Copy Prisma schema (needed for some Prisma operations)
-COPY --from=builder /app/prisma ./prisma
+# Copy package files and install production dependencies
+COPY package*.json ./
+RUN npm install --omit=dev
 
-# Copy startup script
+# Copy Prisma schema and generate client
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+# Copy built application
+COPY --from=builder /app/dist ./dist
+
+# Copy entrypoint script
 COPY docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# Set environment
+# Expose port
+EXPOSE 3000
+
+# Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3000
 ENV HOST=0.0.0.0
+ENV PORT=3000
 
 # Node.js memory optimization for Railway/resource-constrained environments
 # Increased slightly for better stability
 ENV NODE_OPTIONS="--max-old-space-size=384"
 
-EXPOSE 3000
-
-# Use the entrypoint script
 ENTRYPOINT ["./docker-entrypoint.sh"]

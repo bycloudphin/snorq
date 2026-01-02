@@ -9,7 +9,7 @@ healthcheckPath = "/api/v1/alive"
 healthcheckTimeout = 60
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 5
-startCommand = "npm run db:migrate && npm run start"
 numReplicas = 1
+
 
 

@@ -52,8 +52,9 @@ async function start() {
         const app = await buildApp();
         console.log('Fastify app built successfully');
 
+        console.log(`[BOOT] Attempting to listen on ${HOST}:${PORT}...`);
         await app.listen({ port: PORT, host: HOST });
-        console.log(`Server listening on ${HOST}:${PORT}`);
+        console.log(`✅ [BOOT] Server is now listening on http://${HOST}:${PORT}`);
 
         // Initialize Socket.io
         const allowedOrigins = [
