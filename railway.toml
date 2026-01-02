@@ -1,9 +1,0 @@
-# Railway Root Configuration
-# This monorepo contains backend and frontend services
-# Each service has its own railway configuration
-
-[build]
-# We'll use service-specific build commands
-
-[deploy]
-# Railway will auto-detect services from railway.json
