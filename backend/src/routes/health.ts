@@ -24,7 +24,7 @@ export const healthRoutes: FastifyPluginAsync = async (fastify) => {
         const health = {
             status: 'healthy',
             timestamp: new Date().toISOString(),
-            version: process.env.npm_package_version || '0.1.0',
+            version: process.env.npm_package_version || '1.1.0',
             uptime: process.uptime(),
             environment: process.env.NODE_ENV || 'development',
             services: {
