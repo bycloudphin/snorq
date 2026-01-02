@@ -69,7 +69,7 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
             return reply.status(500).send({
                 success: false,
                 error: {
-                    message: 'Facebook integration is not configured. Please add FACEBOOK_APP_ID and FACEBOOK_APP_SECRET to environment variables.'
+                    message: 'Facebook integration is not configured. Please add FACEBOOK_APP_ID and FACEBOOK_APP_SECRET to your Railway environment variables.'
                 }
             });
         }
