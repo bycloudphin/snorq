@@ -10,7 +10,6 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
 
 const FACEBOOK_APP_ID = process.env.FACEBOOK_APP_ID;
 const FACEBOOK_APP_SECRET = process.env.FACEBOOK_APP_SECRET;
-const FACEBOOK_REDIRECT_URI = process.env.FACEBOOK_REDIRECT_URI || 'http://localhost:5173/dashboard/settings/integrations/facebook/callback';
 
 // Types for Meta API responses
 interface MetaError {
@@ -69,19 +68,27 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
             return reply.status(500).send({ success: false, error: { message: 'Facebook App ID not configured' } });
         }
 
+        // Correctly determine redirect URI
+        let redirectUri = process.env.FACEBOOK_REDIRECT_URI;
+        if (!redirectUri && process.env.FRONTEND_URL) {
+            redirectUri = `${process.env.FRONTEND_URL.replace(/\/$/, '')}/dashboard/settings/integrations/facebook/callback`;
+        }
+        if (!redirectUri) {
+            redirectUri = 'http://localhost:5173/dashboard/settings/integrations/facebook/callback';
+        }
+
         const scopes = [
             'public_profile',
-            // 'email', // user reported generic error for this
             'pages_show_list',
             'pages_messaging',
             'pages_manage_metadata',
-            // 'pages_read_engagement', // User reported invalid scope
-            // 'pages_read_user_content', // User reported invalid scope
-            // 'instagram_basic', // user reported error for this
-            // 'instagram_manage_messages' // likely also invalid if basic is
+            'instagram_basic',
+            'instagram_manage_messages'
         ].join(',');
 
-        const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(FACEBOOK_REDIRECT_URI)}&scope=${scopes}&response_type=code`;
+        const url = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scopes}&response_type=code`;
+
+        console.log(`[META] Generated Auth URL with redirect: ${redirectUri}`);
 
         return reply.send({
             success: true,
@@ -100,7 +107,15 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
             const { code } = exchangeTokenSchema.parse(request.body);
 
             // A. Search for User Token
-            const tokenUrl = `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(FACEBOOK_REDIRECT_URI)}&client_secret=${FACEBOOK_APP_SECRET}&code=${code}`;
+            let redirectUri = process.env.FACEBOOK_REDIRECT_URI;
+            if (!redirectUri && process.env.FRONTEND_URL) {
+                redirectUri = `${process.env.FRONTEND_URL.replace(/\/$/, '')}/dashboard/settings/integrations/facebook/callback`;
+            }
+            if (!redirectUri) {
+                redirectUri = 'http://localhost:5173/dashboard/settings/integrations/facebook/callback';
+            }
+
+            const tokenUrl = `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${FACEBOOK_APP_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&client_secret=${FACEBOOK_APP_SECRET}&code=${code}`;
 
             const tokenRes = await fetch(tokenUrl);
             const tokenData = await tokenRes.json() as MetaTokenResponse;
