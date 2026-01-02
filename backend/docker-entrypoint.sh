@@ -1,49 +1,63 @@
 #!/bin/sh
-set -e
 
-echo "=== SNORQ Backend Starting ==="
-echo "Environment: $NODE_ENV"
-echo "Port: $PORT"
+echo "=== SNORQ Backend Container Starting ==="
 echo "Timestamp: $(date)"
+echo "Environment: ${NODE_ENV:-not set}"
+echo "Port: ${PORT:-3000}"
 
-# Check if DATABASE_URL is set
+# Check critical environment variables
 if [ -z "$DATABASE_URL" ]; then
-    echo "ERROR: DATABASE_URL is not set!"
-    echo "Starting server anyway (will fail on DB operations)..."
-    exec node dist/server.js
+    echo "⚠️  WARNING: DATABASE_URL is not set!"
+    echo "Starting server anyway - database operations will fail"
 fi
 
-echo "DATABASE_URL is configured"
-echo "Waiting for database to be ready..."
+if [ -z "$JWT_SECRET" ]; then
+    echo "⚠️  WARNING: JWT_SECRET is not set!"
+fi
 
-# Retry loop for database connection
-MAX_RETRIES=30
-RETRY_COUNT=0
-
-while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-    if npx prisma migrate deploy 2>&1; then
-        echo "Database migration successful!"
+# Try to run migrations with better error handling
+if [ -n "$DATABASE_URL" ]; then
+    echo ""
+    echo "=== Running Database Migrations ==="
+    
+    # Retry loop for database connection
+    MAX_RETRIES=10
+    RETRY_COUNT=0
+    
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        echo "Attempt $((RETRY_COUNT + 1))/$MAX_RETRIES: Running prisma migrate deploy..."
         
-        # Run seed script (compiled JS version)
-        echo "Running database seed..."
-        if [ -f "dist/prisma/seed.js" ]; then
-            node dist/prisma/seed.js 2>&1 || echo "Seed script completed (may have already seeded)"
+        if npx prisma migrate deploy 2>&1; then
+            echo "✅ Database migrations completed successfully!"
+            
+            # Run seed script if it exists
+            if [ -f "dist/prisma/seed.js" ]; then
+                echo "Running database seed..."
+                node dist/prisma/seed.js 2>&1 || echo "Seed completed (may already be seeded)"
+            fi
+            
+            break
         else
-            echo "Seed script not found, skipping..."
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                echo "Database not ready, waiting 3 seconds..."
+                sleep 3
+            fi
         fi
-        
-        break
-    else
-        RETRY_COUNT=$((RETRY_COUNT + 1))
-        echo "Database not ready, retry $RETRY_COUNT/$MAX_RETRIES..."
-        sleep 2
+    done
+    
+    if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+        echo "⚠️  Could not run migrations after $MAX_RETRIES attempts"
+        echo "Starting server anyway..."
     fi
-done
-
-if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
-    echo "WARNING: Could not run migrations after $MAX_RETRIES attempts."
-    echo "Starting server anyway - some features may not work..."
+else
+    echo "Skipping migrations (no DATABASE_URL)"
 fi
 
+echo ""
 echo "=== Starting SNORQ API Server ==="
+echo "Node version: $(node --version)"
+echo "Memory limit: ${RAILWAY_MEMORY_LIMIT_MB:-unknown}MB"
+
+# Start the server
 exec node dist/server.js

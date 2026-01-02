@@ -52,7 +52,12 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
+# Node.js memory optimization for Railway/resource-constrained environments
+# Reduce heap size to prevent OOM kills
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
 EXPOSE 3000
 
 # Use the entrypoint script
 ENTRYPOINT ["./docker-entrypoint.sh"]
+
