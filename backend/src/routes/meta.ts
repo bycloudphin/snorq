@@ -64,8 +64,14 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
 
     // 1. Get Facebook Auth URL
     app.get('/meta/auth-url', async (_request, reply) => {
-        if (!FACEBOOK_APP_ID) {
-            return reply.status(500).send({ success: false, error: { message: 'Facebook App ID not configured' } });
+        if (!FACEBOOK_APP_ID || !FACEBOOK_APP_SECRET) {
+            console.error('[META] Facebook Auth Error: FACEBOOK_APP_ID or FACEBOOK_APP_SECRET is missing');
+            return reply.status(500).send({
+                success: false,
+                error: {
+                    message: 'Facebook integration is not configured. Please add FACEBOOK_APP_ID and FACEBOOK_APP_SECRET to environment variables.'
+                }
+            });
         }
 
         // Correctly determine redirect URI

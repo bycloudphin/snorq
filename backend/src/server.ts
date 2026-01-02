@@ -12,7 +12,7 @@ console.log(`[INIT] Starting on ${HOST}:${PORT}`);
 // Check required environment variables
 function checkEnvVars() {
     const required = ['JWT_SECRET'];
-    const optional = ['DATABASE_URL', 'REDIS_URL', 'RESEND_API_KEY', 'FRONTEND_URL'];
+    const optional = ['DATABASE_URL', 'REDIS_URL', 'RESEND_API_KEY', 'FRONTEND_URL', 'FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET', 'FACEBOOK_REDIRECT_URI'];
 
     console.log('=== Environment Check ===');
     console.log(`NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
