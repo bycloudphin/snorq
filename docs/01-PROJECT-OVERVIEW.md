@@ -116,13 +116,13 @@
 ## 📈 Success Metrics
 
 ### Launch Goals
-- 100 beta users within first month
+- 100 beta users within first quarter
 - 95% uptime
 - < 2 second message delivery latency
 - < 3 second page load time
 
-### Growth Goals (6 months)
-- 1,000 active users
+### Growth Goals (12 months)
+- 5,00 active users
 - 10% paid conversion rate
 - < 1% churn rate
 - NPS score > 50
