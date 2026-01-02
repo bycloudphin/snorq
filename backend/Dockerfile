@@ -1,7 +1,8 @@
+# Build stage
 FROM node:20-alpine AS builder
 
-# Install OpenSSL for Prisma
-RUN apk add --no-cache openssl openssl-dev
+# Install build dependencies for native modules (like bcrypt)
+RUN apk add --no-cache openssl openssl-dev python3 make g++
 
 WORKDIR /app
 
@@ -9,20 +10,20 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies (using npm install since there's no lock file in subdirectory)
+# Install ALL dependencies
 RUN npm install
-
-# Generate Prisma client
-RUN npx prisma generate
 
 # Copy source code
 COPY . .
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Build TypeScript
 RUN npm run build
 
-# Also compile the seed script
-RUN npx tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop --skipLibCheck --resolveJsonModule
+# Remove development dependencies to keep image small
+RUN npm prune --production
 
 # Production stage
 FROM node:20-alpine AS production
@@ -32,16 +33,14 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copy package files and install production dependencies only
-COPY package*.json ./
-RUN npm install --omit=dev
-
-# Copy Prisma schema and generate client
-COPY prisma ./prisma/
-RUN npx prisma generate
-
+# Copy production node_modules from builder
+COPY --from=builder /app/node_modules ./node_modules
 # Copy built files
 COPY --from=builder /app/dist ./dist
+# Copy package.json (needed for scripts/metadata)
+COPY --from=builder /app/package.json ./
+# Copy Prisma schema (needed for some Prisma operations)
+COPY --from=builder /app/prisma ./prisma
 
 # Copy startup script
 COPY docker-entrypoint.sh ./
@@ -53,11 +52,10 @@ ENV PORT=3000
 ENV HOST=0.0.0.0
 
 # Node.js memory optimization for Railway/resource-constrained environments
-# Reduce heap size to prevent OOM kills
-ENV NODE_OPTIONS="--max-old-space-size=256"
+# Increased slightly for better stability
+ENV NODE_OPTIONS="--max-old-space-size=384"
 
 EXPOSE 3000
 
 # Use the entrypoint script
 ENTRYPOINT ["./docker-entrypoint.sh"]
-
