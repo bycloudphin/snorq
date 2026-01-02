@@ -261,61 +261,70 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
     app.post('/meta/webhook', async (request: FastifyRequest, reply: FastifyReply) => {
         const body = request.body as any;
 
-        // Check if this is an event from a page subscription
-        if (body.object === 'page') {
+        // Check if this is an event from a page or instagram subscription
+        if (body.object === 'page' || body.object === 'instagram') {
+            const platform = body.object === 'page' ? Platform.FACEBOOK : Platform.INSTAGRAM;
+
             // Iterate over each entry
             for (const entry of body.entry) {
                 const webhookEvent = entry.messaging?.[0];
-                if (webhookEvent && webhookEvent.message) {
-                    console.log('--- INCOMING WEBHOOK MESSAGE ---');
+                if (webhookEvent && (webhookEvent.message || webhookEvent.postback)) {
+                    console.log(`--- INCOMING ${body.object.toUpperCase()} WEBHOOK EVENT ---`);
                     console.log(JSON.stringify(webhookEvent, null, 2));
 
                     const senderId = webhookEvent.sender.id;
                     const recipientId = webhookEvent.recipient.id;
-                    const messageText = webhookEvent.message.text;
-                    const mid = webhookEvent.message.mid;
+                    const messageText = webhookEvent.message?.text || webhookEvent.postback?.title || '[Media/Other]';
+                    const mid = webhookEvent.message?.mid || webhookEvent.postback?.mid || `pb_${Date.now()}`;
                     const timestamp = webhookEvent.timestamp;
 
-                    console.log(`Processing message from ${senderId} to ${recipientId}`);
+                    console.log(`Processing ${platform} message from ${senderId} to ${recipientId}`);
 
                     try {
-
-                        // 1. Find the PlatformConnection for this Page
+                        // 1. Find the PlatformConnection for this Page/Account
                         const platformConnection = await prisma.platformConnection.findFirst({
                             where: {
-                                platform: Platform.FACEBOOK,
+                                platform,
                                 platformUserId: recipientId
                             }
                         });
 
                         if (!platformConnection) {
-                            console.error(`❌ No PlatformConnection found for page ID: ${recipientId}`);
-                            // Log all FB connections to debug
-                            const allFb = await prisma.platformConnection.findMany({ select: { platformUserId: true } });
-                            console.log('Available FB Page IDs in DB:', allFb.map(c => c.platformUserId));
+                            console.error(`❌ No PlatformConnection found for ${platform} ID: ${recipientId}`);
                             continue;
                         }
 
                         console.log(`✅ Found PlatformConnection: ${platformConnection.id}`);
 
-                        // Fetch User Profile from Facebook
+                        // 2. Fetch User Profile from Facebook/Instagram
+                        // We use a small cache or just fetch it here for now
                         let contactName = `User ${senderId.slice(0, 5)}`;
                         let contactAvatarUrl = null;
 
                         try {
-                            const profileUrl = `https://graph.facebook.com/v18.0/${senderId}?fields=first_name,last_name,profile_pic&access_token=${platformConnection.accessToken}`;
+                            const fields = platform === Platform.FACEBOOK
+                                ? 'first_name,last_name,profile_pic'
+                                : 'username,profile_pic';
+
+                            const profileUrl = `https://graph.facebook.com/v18.0/${senderId}?fields=${fields}&access_token=${platformConnection.accessToken}`;
                             const profileRes = await fetch(profileUrl);
                             const profileData = await profileRes.json() as any;
 
                             if (!profileData.error) {
-                                contactName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || contactName;
+                                if (platform === Platform.FACEBOOK) {
+                                    contactName = `${profileData.first_name || ''} ${profileData.last_name || ''}`.trim() || contactName;
+                                } else {
+                                    contactName = profileData.username || contactName;
+                                }
                                 contactAvatarUrl = profileData.profile_pic;
+                            } else {
+                                console.warn('Meta Profile Error:', profileData.error.message);
                             }
                         } catch (err) {
-                            console.error('Failed to fetch FB profile:', err);
+                            console.error('Failed to fetch Meta profile:', err);
                         }
 
-                        // 2. Find or Create Conversation
+                        // 3. Find or Create Conversation
                         let conversation = await prisma.conversation.findUnique({
                             where: {
                                 platformConnectionId_externalId: {
@@ -329,7 +338,7 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
                             console.log('Creating new conversation...');
                             conversation = await prisma.conversation.create({
                                 data: {
-                                    platform: Platform.FACEBOOK,
+                                    platform,
                                     externalId: senderId,
                                     contactExternalId: senderId,
                                     contactName,
@@ -352,43 +361,42 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
                                     lastMessageAt: new Date(timestamp),
                                     lastMessagePreview: messageText,
                                     status: 'OPEN',
-                                    // Update profile info periodically? optional
-                                    contactName: contactName !== `User ${senderId.slice(0, 5)}` ? contactName : undefined,
-                                    contactAvatarUrl: contactAvatarUrl || undefined
+                                    contactName,
+                                    contactAvatarUrl
                                 }
                             });
                         }
 
-                        // 3. Create Message
+                        // 4. Create Message
                         const newMessage = await prisma.message.create({
                             data: {
                                 conversationId: conversation.id,
                                 direction: 'INBOUND',
                                 content: messageText,
                                 externalId: mid,
-                                contentType: 'TEXT',
+                                contentType: webhookEvent.message?.attachments ? 'IMAGE' : 'TEXT', // Naive check
                                 status: 'DELIVERED',
                                 platformTimestamp: new Date(timestamp),
                                 createdAt: new Date()
                             }
                         });
 
-
                         console.log(`✅ Message saved to DB: ${newMessage.id}`);
 
-                        // 4. Emit Real-time Event
+                        // 5. Emit Real-time Event
                         SocketService.getInstance().emitToOrganization(platformConnection.organizationId, 'new_message', {
                             conversationId: conversation.id,
                             message: newMessage,
-                            conversation: conversation // Optional: update conversation list previews
+                            conversation: {
+                                ...conversation,
+                                lastMessagePreview: messageText,
+                                lastMessageAt: new Date(timestamp)
+                            }
                         });
 
 
                     } catch (error) {
                         console.error('❌ Error processing webhook event:', error);
-                        if (error instanceof Error) {
-                            console.error(error.stack);
-                        }
                     }
                 }
             }

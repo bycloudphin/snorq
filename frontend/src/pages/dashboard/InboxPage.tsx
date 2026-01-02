@@ -2,12 +2,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSocket } from '../../contexts/SocketContext';
-import { Search, Send, Phone, Video, MoreVertical, Paperclip, Smile } from 'lucide-react';
+import { Search, Send, Phone, Video, MoreVertical, Paperclip, Smile, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Conversation {
     id: string;
     contactName: string;
+    contactAvatarUrl?: string;
     lastMessagePreview: string;
     lastMessageAt: string;
     unreadCount: number;
@@ -29,6 +30,7 @@ export function InboxPage() {
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+    const [isSyncing, setIsSyncing] = useState(false);
     const [inputMessage, setInputMessage] = useState('');
 
     // Auto-scroll to bottom of chat
@@ -38,26 +40,25 @@ export function InboxPage() {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
 
     // Fetch Conversations
-    useEffect(() => {
+    const fetchConversations = async () => {
         if (!organizationId || !accessToken) return;
-
-        async function fetchConversations() {
-            setIsLoadingConversations(true);
-            try {
-                const res = await fetch(`${API_URL}/organizations/${organizationId}/conversations`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
-                });
-                const data = await res.json();
-                if (data.success) {
-                    setConversations(data.data);
-                }
-            } catch (error) {
-                console.error('Failed to fetch conversations', error);
-            } finally {
-                setIsLoadingConversations(false);
+        setIsLoadingConversations(true);
+        try {
+            const res = await fetch(`${API_URL}/organizations/${organizationId}/conversations`, {
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                setConversations(data.data);
             }
+        } catch (error) {
+            console.error('Failed to fetch conversations', error);
+        } finally {
+            setIsLoadingConversations(false);
         }
+    };
 
+    useEffect(() => {
         fetchConversations();
     }, [organizationId, accessToken, API_URL]);
 
@@ -71,13 +72,12 @@ export function InboxPage() {
             // 1. Update Messages list if this is the active conversation
             if (selectedConversationId === data.conversationId) {
                 setMessages((prev) => {
-                    // Avoid duplicates
                     if (prev.some(m => m.id === data.message.id)) return prev;
                     return [...prev, data.message];
                 });
             }
 
-            // 2. Update Conversations list (move to top, update preview)
+            // 2. Update Conversations list
             setConversations((prev) => {
                 const existingConvIndex = prev.findIndex(c => c.id === data.conversationId);
                 let newConvs = [...prev];
@@ -85,18 +85,15 @@ export function InboxPage() {
                 if (existingConvIndex !== -1) {
                     const conv = { ...newConvs[existingConvIndex] };
                     conv.lastMessagePreview = data.message.content;
-                    conv.lastMessageAt = data.message.createdAt;
+                    conv.lastMessageAt = data.message.platformTimestamp || data.message.createdAt;
 
-                    // Increment unread if not currently selected
                     if (selectedConversationId !== data.conversationId) {
                         conv.unreadCount += 1;
                     }
 
-                    // Remove from old position and add to top
                     newConvs.splice(existingConvIndex, 1);
                     newConvs.unshift(conv);
                 } else if (data.conversation) {
-                    // New conversation, add to top
                     newConvs.unshift(data.conversation);
                 }
                 return newConvs;
@@ -104,10 +101,7 @@ export function InboxPage() {
         };
 
         socket.on('new_message', handleNewMessage);
-
-        return () => {
-            socket.off('new_message', handleNewMessage);
-        };
+        return () => { socket.off('new_message', handleNewMessage); };
     }, [socket, selectedConversationId]);
 
     // Fetch Messages when conversation selected
@@ -136,7 +130,6 @@ export function InboxPage() {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
-
     const selectedConversation = conversations.find(c => c.id === selectedConversationId);
 
     async function handleSendMessage() {
@@ -145,7 +138,6 @@ export function InboxPage() {
         const originalMessage = inputMessage;
         setInputMessage('');
 
-        // Optimistic UI Update (optional)
         const tempId = `temp-${Date.now()}`;
         setMessages(prev => [...prev, {
             id: tempId,
@@ -166,13 +158,10 @@ export function InboxPage() {
 
             const data = await res.json();
             if (!data.success) {
-                console.error('Failed to send message:', data.error);
-                // Revert optimistic update or show error
                 setMessages(prev => prev.filter(m => m.id !== tempId));
                 alert('Failed to send message');
-                setInputMessage(originalMessage); // Restore text
+                setInputMessage(originalMessage);
             } else {
-                // Replace temp message with real one
                 setMessages(prev => prev.map(m => m.id === tempId ? data.data : m));
             }
         } catch (error) {
@@ -182,13 +171,42 @@ export function InboxPage() {
         }
     }
 
+    async function handleSync() {
+        if (!organizationId || !accessToken || isSyncing) return;
+        setIsSyncing(true);
+        try {
+            const res = await fetch(`${API_URL}/organizations/${organizationId}/sync`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${accessToken}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                await fetchConversations();
+            }
+        } catch (error) {
+            console.error('Failed to sync', error);
+        } finally {
+            setIsSyncing(false);
+        }
+    }
+
     return (
         <div className="flex h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             {/* Sidebar: Conversation List */}
             <div className="w-80 border-r border-slate-200 flex flex-col bg-slate-50">
                 {/* Header */}
                 <div className="p-4 border-b border-slate-200 bg-white">
-                    <h2 className="text-lg font-bold text-slate-800 mb-4">Inbox</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-bold text-slate-800">Inbox</h2>
+                        <button
+                            onClick={handleSync}
+                            disabled={isSyncing}
+                            className={`p-2 text-slate-400 hover:text-green-500 hover:bg-green-50 rounded-lg transition-all ${isSyncing ? 'opacity-50' : ''}`}
+                            title="Sync conversations"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                        </button>
+                    </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
@@ -216,27 +234,35 @@ export function InboxPage() {
                                 className={`p-4 border-b border-slate-100 cursor-pointer transition-colors hover:bg-white ${selectedConversationId === conv.id ? 'bg-white border-l-4 border-l-green-500 shadow-sm' : 'border-l-4 border-l-transparent'
                                     }`}
                             >
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-semibold text-slate-800 truncate pr-2">{conv.contactName || 'Unknown User'}</h3>
-                                    {conv.lastMessageAt && (
-                                        <span className="text-xs text-slate-400 whitespace-nowrap">
-                                            {format(new Date(conv.lastMessageAt), 'MMM d, h:mm a')}
-                                        </span>
-                                    )}
-                                </div>
-                                <p className="text-sm text-slate-500 truncate mb-2">
-                                    {conv.lastMessagePreview || 'No messages'}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium uppercase tracking-wide border ${conv.platform === 'FACEBOOK' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-50 text-slate-500 border-slate-200'
-                                        }`}>
-                                        {conv.platform}
-                                    </span>
-                                    {conv.unreadCount > 0 && (
-                                        <span className="ml-auto bg-green-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[1.25rem] text-center">
-                                            {conv.unreadCount}
-                                        </span>
-                                    )}
+                                <div className="flex gap-3">
+                                    <div className="relative shrink-0">
+                                        {conv.contactAvatarUrl ? (
+                                            <img src={conv.contactAvatarUrl} alt="" className="w-10 h-10 rounded-full bg-slate-200 object-cover" />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-500 font-bold text-sm">
+                                                {conv.contactName?.[0]?.toUpperCase() || '?'}
+                                            </div>
+                                        )}
+                                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold ${conv.platform === 'FACEBOOK' ? 'bg-blue-600' :
+                                                conv.platform === 'INSTAGRAM' ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600' :
+                                                    'bg-slate-400'
+                                            }`}>
+                                            <span className="text-white">{conv.platform[0]}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start mb-0.5">
+                                            <h3 className="font-semibold text-slate-800 truncate pr-1 text-sm">{conv.contactName || 'Unknown User'}</h3>
+                                            {conv.lastMessageAt && (
+                                                <span className="text-[10px] text-slate-400 whitespace-nowrap pt-0.5">
+                                                    {format(new Date(conv.lastMessageAt), 'h:mm a')}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-slate-500 truncate">
+                                            {conv.lastMessagePreview || 'No messages'}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         ))
@@ -251,9 +277,13 @@ export function InboxPage() {
                         {/* Chat Header */}
                         <div className="h-16 border-b border-slate-100 flex items-center justify-between px-6 bg-white shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
-                                    {selectedConversation.contactName?.[0]?.toUpperCase() || '?'}
-                                </div>
+                                {selectedConversation.contactAvatarUrl ? (
+                                    <img src={selectedConversation.contactAvatarUrl} alt="" className="w-10 h-10 rounded-full bg-slate-200 object-cover" />
+                                ) : (
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                                        {selectedConversation.contactName?.[0]?.toUpperCase() || '?'}
+                                    </div>
+                                )}
                                 <div>
                                     <h3 className="font-bold text-slate-800">{selectedConversation.contactName}</h3>
                                     <p className="text-xs text-green-600 flex items-center gap-1">

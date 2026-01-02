@@ -1,5 +1,6 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { Platform, ConnectionStatus } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/db.js';
 import { FacebookService } from '../services/platform/FacebookService';
@@ -20,6 +21,83 @@ async function verifyToken(authHeader: string | undefined): Promise<{ userId: st
 }
 
 export async function conversationRoutes(app: FastifyInstance): Promise<void> {
+
+    // POST /organizations/:organizationId/sync
+    app.post('/organizations/:organizationId/sync', async (request: FastifyRequest<{ Params: { organizationId: string } }>, reply: FastifyReply) => {
+        try {
+            const decoded = await verifyToken(request.headers.authorization);
+            if (!decoded) {
+                return reply.status(401).send({ success: false, error: { code: 401, message: 'Unauthorized' } });
+            }
+
+            const { organizationId } = request.params;
+
+            // 1. Find all active platform connections for this org
+            const connections = await prisma.platformConnection.findMany({
+                where: { organizationId, status: ConnectionStatus.ACTIVE }
+            });
+
+            if (connections.length === 0) {
+                return reply.send({ success: true, data: { message: 'No connections to sync' } });
+            }
+
+            const facebookService = new FacebookService();
+            let totalSynced = 0;
+
+            for (const connection of connections) {
+                if (connection.platform === Platform.FACEBOOK || connection.platform === Platform.INSTAGRAM) {
+                    try {
+                        const fbThreads = await facebookService.syncConversations(connection);
+
+                        for (const thread of fbThreads) {
+                            const lastMsg = thread.messages?.data?.[0];
+                            const participant = thread.participants?.data?.find((p: any) => p.id !== connection.platformUserId);
+
+                            if (!participant) continue;
+
+                            await prisma.conversation.upsert({
+                                where: {
+                                    platformConnectionId_externalId: {
+                                        platformConnectionId: connection.id,
+                                        externalId: participant.id
+                                    }
+                                },
+                                update: {
+                                    lastMessageAt: thread.updated_time ? new Date(thread.updated_time) : new Date(),
+                                    lastMessagePreview: lastMsg?.message || 'No preview',
+                                    contactName: participant.name || 'User',
+                                    updatedAt: new Date()
+                                },
+                                create: {
+                                    organizationId,
+                                    platform: connection.platform,
+                                    platformConnectionId: connection.id,
+                                    externalId: participant.id,
+                                    contactExternalId: participant.id,
+                                    contactName: participant.name || 'User',
+                                    status: 'OPEN',
+                                    lastMessageAt: thread.updated_time ? new Date(thread.updated_time) : new Date(),
+                                    lastMessagePreview: lastMsg?.message || 'No preview'
+                                }
+                            });
+                            totalSynced++;
+                        }
+                    } catch (err) {
+                        console.error(`Sync failed for connection ${connection.id}:`, err);
+                    }
+                }
+            }
+
+            return reply.send({
+                success: true,
+                data: { message: `Synced ${totalSynced} conversations` }
+            });
+
+        } catch (error) {
+            console.error('Sync Error:', error);
+            return reply.status(500).send({ success: false, error: { message: 'Internal server error' } });
+        }
+    });
 
     // GET /organizations/:organizationId/conversations
     app.get('/organizations/:organizationId/conversations', async (request: FastifyRequest<{ Params: { organizationId: string } }>, reply: FastifyReply) => {
@@ -160,7 +238,8 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                         data: {
                             lastMessageAt: new Date(),
                             lastMessagePreview: `You: ${content}`,
-                            status: 'OPEN'
+                            status: 'OPEN',
+                            updatedAt: new Date()
                         }
                     });
 

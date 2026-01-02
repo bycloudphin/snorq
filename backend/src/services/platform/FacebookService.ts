@@ -41,4 +41,49 @@ export class FacebookService implements PlatformService {
             throw error;
         }
     }
+
+    async syncConversations(
+        connection: PlatformConnection
+    ): Promise<any[]> {
+        const pageAccessToken = connection.accessToken;
+        // Fetch conversations with recent messages and participants
+        const url = `${this.BASE_URL}/${this.API_VERSION}/me/conversations?fields=id,updated_time,messages.limit(1){message,from,created_time},participants&access_token=${pageAccessToken}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json() as any;
+
+            if (data.error) {
+                console.error('Facebook Sync Error:', data.error);
+                throw new Error(data.error.message || 'Failed to sync conversations from Facebook');
+            }
+
+            return data.data || [];
+        } catch (error) {
+            console.error('FacebookService Sync Error:', error);
+            throw error;
+        }
+    }
+
+    async getMessageHistory(
+        connection: PlatformConnection,
+        conversationId: string
+    ): Promise<any[]> {
+        const pageAccessToken = connection.accessToken;
+        const url = `${this.BASE_URL}/${this.API_VERSION}/${conversationId}/messages?fields=id,message,from,created_time,attachments&access_token=${pageAccessToken}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json() as any;
+
+            if (data.error) {
+                throw new Error(data.error.message);
+            }
+
+            return data.data || [];
+        } catch (error) {
+            console.error('FacebookService History Error:', error);
+            throw error;
+        }
+    }
 }
