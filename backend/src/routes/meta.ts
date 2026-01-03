@@ -366,7 +366,45 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
             // Iterate over each entry
             for (const entry of body.entry) {
                 const webhookEvent = entry.messaging?.[0];
-                if (webhookEvent && (webhookEvent.message || webhookEvent.postback)) {
+                if (!webhookEvent) continue;
+
+                // 1. Handle Echoes (Ignore messages sent by the Page itself)
+                if (webhookEvent.message?.is_echo) {
+                    console.log(`[META] Ignoring echo message for mid: ${webhookEvent.message.mid}`);
+                    continue;
+                }
+
+                // 2. Handle Delivery/Read Receipts
+                if (webhookEvent.delivery || webhookEvent.read) {
+                    const mids = webhookEvent.delivery?.mids || [];
+                    const waterMark = webhookEvent.read?.watermark;
+
+                    console.log(`[META] Processing ${webhookEvent.delivery ? 'DELIVERY' : 'READ'} event`);
+
+                    if (mids.length > 0) {
+                        await prisma.message.updateMany({
+                            where: { externalId: { in: mids } },
+                            data: { status: 'DELIVERED' }
+                        });
+                    }
+
+                    // For reads, Meta sends a watermark (timestamp up to which messages were read)
+                    // We can update all outbound messages before this watermark
+                    if (waterMark) {
+                        await prisma.message.updateMany({
+                            where: {
+                                direction: 'OUTBOUND',
+                                platformTimestamp: { lte: new Date(waterMark) },
+                                status: { not: 'READ' }
+                            },
+                            data: { status: 'READ' }
+                        });
+                    }
+                    continue;
+                }
+
+                // 3. Handle Normal Messages or Postbacks
+                if (webhookEvent.message || webhookEvent.postback) {
                     console.log(`--- INCOMING ${body.object.toUpperCase()} WEBHOOK EVENT ---`);
                     console.log(JSON.stringify(webhookEvent, null, 2));
 
