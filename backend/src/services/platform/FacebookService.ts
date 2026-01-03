@@ -16,8 +16,7 @@ export class FacebookService implements PlatformService {
         const payload: any = {
             recipient: { id: recipientId },
             message: { text: content },
-            messaging_type: "MESSAGE_TAG",
-            tag: "HUMAN_AGENT"
+            messaging_type: "RESPONSE" // Note: HUMAN_AGENT requires Meta approval
         };
 
         try {

@@ -306,6 +306,15 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                         });
                     }
 
+                    if (error.message?.includes('HUMAN_AGENT') && error.message?.includes('approval')) {
+                        return reply.status(400).send({
+                            success: false,
+                            error: {
+                                message: 'Facebook Human Agent tag requires Meta App approval. Please request this permission in Meta Developer Portal or use standard replies within 24 hours.'
+                            }
+                        });
+                    }
+
                     throw error;
                 }
             }
