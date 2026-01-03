@@ -1,5 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { Platform, ConnectionStatus } from '@prisma/client';
+import { Platform, ConnectionStatus, ContentType } from '@prisma/client';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/db.js';
@@ -387,13 +387,25 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
                         }
 
                         // 4. Create Message
+                        let mediaUrl = null;
+                        let contentType: ContentType = 'TEXT';
+
+                        if (webhookEvent.message?.attachments && webhookEvent.message.attachments.length > 0) {
+                            const firstAttachment = webhookEvent.message.attachments[0];
+                            mediaUrl = firstAttachment.payload?.url;
+                            if (firstAttachment.type === 'image') contentType = 'IMAGE';
+                            else if (firstAttachment.type === 'video') contentType = 'VIDEO';
+                            else if (firstAttachment.type === 'file') contentType = 'FILE';
+                        }
+
                         const newMessage = await prisma.message.create({
                             data: {
                                 conversationId: conversation.id,
                                 direction: 'INBOUND',
                                 content: messageText,
                                 externalId: mid,
-                                contentType: webhookEvent.message?.attachments ? 'IMAGE' : 'TEXT', // Naive check
+                                contentType,
+                                mediaUrl,
                                 status: 'DELIVERED',
                                 platformTimestamp: new Date(timestamp),
                                 createdAt: new Date()

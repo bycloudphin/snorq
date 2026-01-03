@@ -20,6 +20,8 @@ interface Message {
     content: string;
     direction: 'INBOUND' | 'OUTBOUND';
     createdAt: string;
+    contentType?: 'TEXT' | 'IMAGE' | 'VIDEO' | 'FILE';
+    mediaUrl?: string;
 }
 
 export function InboxPage() {
@@ -244,8 +246,8 @@ export function InboxPage() {
                                             </div>
                                         )}
                                         <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold ${conv.platform === 'FACEBOOK' ? 'bg-blue-600' :
-                                                conv.platform === 'INSTAGRAM' ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600' :
-                                                    'bg-slate-400'
+                                            conv.platform === 'INSTAGRAM' ? 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600' :
+                                                'bg-slate-400'
                                             }`}>
                                             <span className="text-white">{conv.platform[0]}</span>
                                         </div>
@@ -309,7 +311,22 @@ export function InboxPage() {
                                             ? 'bg-white text-slate-800 rounded-tl-sm border border-slate-100'
                                             : 'bg-green-600 text-white rounded-tr-sm'
                                             }`}>
-                                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                            {msg.mediaUrl && msg.contentType === 'IMAGE' && (
+                                                <div className="mb-2 -mx-2">
+                                                    <img src={msg.mediaUrl} alt="Attachment" className="rounded-lg max-w-full h-auto shadow-sm cursor-pointer hover:opacity-95 transition-opacity" />
+                                                </div>
+                                            )}
+                                            {msg.mediaUrl && msg.contentType !== 'IMAGE' && (
+                                                <div className="mb-2 p-3 bg-slate-50/10 rounded-lg flex items-center gap-2 border border-white/10">
+                                                    <Paperclip className="w-4 h-4" />
+                                                    <a href={msg.mediaUrl} target="_blank" rel="noopener noreferrer" className="text-xs underline">
+                                                        View Attachment
+                                                    </a>
+                                                </div>
+                                            )}
+                                            {msg.content && (
+                                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                            )}
                                             <p className={`text-[10px] mt-1 text-right ${isInbound ? 'text-slate-400' : 'text-green-200'}`}>
                                                 {format(new Date(msg.createdAt), 'h:mm a')}
                                             </p>

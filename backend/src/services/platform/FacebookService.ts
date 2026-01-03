@@ -46,8 +46,8 @@ export class FacebookService implements PlatformService {
         connection: PlatformConnection
     ): Promise<any[]> {
         const pageAccessToken = connection.accessToken;
-        // Fetch conversations with recent messages and participants
-        const url = `${this.BASE_URL}/${this.API_VERSION}/me/conversations?fields=id,updated_time,messages.limit(1){message,from,created_time},participants&access_token=${pageAccessToken}`;
+        // Fetch conversations with recent messages and participants (including profile pictures)
+        const url = `${this.BASE_URL}/${this.API_VERSION}/me/conversations?fields=id,updated_time,messages.limit(1){message,from,created_time},participants{id,name,picture}&access_token=${pageAccessToken}`;
 
         try {
             const response = await fetch(url);

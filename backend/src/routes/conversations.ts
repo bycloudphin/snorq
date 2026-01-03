@@ -1,6 +1,6 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { Platform, ConnectionStatus } from '@prisma/client';
+import { Platform, ConnectionStatus, ContentType } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/db.js';
 import { FacebookService } from '../services/platform/FacebookService';
@@ -55,7 +55,7 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
 
                             if (!participant) continue;
 
-                            await prisma.conversation.upsert({
+                            const conv = await prisma.conversation.upsert({
                                 where: {
                                     platformConnectionId_externalId: {
                                         platformConnectionId: connection.id,
@@ -66,6 +66,7 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                                     lastMessageAt: thread.updated_time ? new Date(thread.updated_time) : new Date(),
                                     lastMessagePreview: lastMsg?.message || 'No preview',
                                     contactName: participant.name || 'User',
+                                    contactAvatarUrl: participant.picture?.data?.url || null,
                                     updatedAt: new Date()
                                 },
                                 create: {
@@ -75,11 +76,47 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                                     externalId: participant.id,
                                     contactExternalId: participant.id,
                                     contactName: participant.name || 'User',
+                                    contactAvatarUrl: participant.picture?.data?.url || null,
                                     status: 'OPEN',
                                     lastMessageAt: thread.updated_time ? new Date(thread.updated_time) : new Date(),
                                     lastMessagePreview: lastMsg?.message || 'No preview'
                                 }
                             });
+
+                            // --- SYNC HISTORY (Last 10 messages) ---
+                            try {
+                                const history = await facebookService.getMessageHistory(connection, thread.id);
+                                for (const hMsg of history.slice(0, 10)) {
+                                    let hMediaUrl = null;
+                                    let hContentType: ContentType = 'TEXT';
+
+                                    if (hMsg.attachments?.data?.[0]) {
+                                        const att = hMsg.attachments.data[0];
+                                        hMediaUrl = att.image_data?.url || att.video_data?.url || att.file_url;
+                                        if (att.image_data) hContentType = 'IMAGE';
+                                        else if (att.video_data) hContentType = 'VIDEO';
+                                    }
+
+                                    await prisma.message.upsert({
+                                        where: { id: `ext_${hMsg.id}` },
+                                        update: {},
+                                        create: {
+                                            id: `ext_${hMsg.id}`,
+                                            conversationId: conv.id,
+                                            externalId: hMsg.id,
+                                            direction: hMsg.from?.id === connection.platformUserId ? 'OUTBOUND' : 'INBOUND',
+                                            content: hMsg.message,
+                                            contentType: hContentType,
+                                            mediaUrl: hMediaUrl,
+                                            platformTimestamp: new Date(hMsg.created_time),
+                                            status: 'DELIVERED'
+                                        }
+                                    });
+                                }
+                            } catch (hErr) {
+                                console.error(`Failed to sync history for thread ${thread.id}:`, hErr);
+                            }
+
                             totalSynced++;
                         }
                     } catch (err) {
