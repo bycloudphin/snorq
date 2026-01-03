@@ -16,6 +16,17 @@ export async function buildApp(): Promise<FastifyInstance> {
         trustProxy: true,
     });
 
+    // Add custom content type parser to preserve raw body for webhook signature verification
+    app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+        try {
+            // Store raw body for signature verification (used by Meta webhooks)
+            (req as any).rawBody = body;
+            done(null, JSON.parse(body as string));
+        } catch (err) {
+            done(err as Error, undefined);
+        }
+    });
+
     // Security headers
     await app.register(helmet, {
         contentSecurityPolicy: process.env.NODE_ENV === 'production',

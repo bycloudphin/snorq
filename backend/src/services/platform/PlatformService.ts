@@ -1,7 +1,7 @@
 import { PlatformConnection } from '@prisma/client';
 
 export interface SendMessageResult {
-    externalId: string;
+    externalId: string | null;
     // Add other metadata if needed
 }
 

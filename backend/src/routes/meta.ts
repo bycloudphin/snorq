@@ -204,6 +204,55 @@ function parseSignedRequest(signedRequest: string): { user_id?: string } | null 
 }
 
 /**
+ * Verifies the X-Hub-Signature-256 header for webhook requests
+ * 
+ * Meta signs all webhook payloads using HMAC-SHA256 with the App Secret.
+ * This verification ensures the request is genuinely from Meta.
+ * 
+ * @param signature - The X-Hub-Signature-256 header value (format: "sha256=xxx")
+ * @param rawBody - The raw request body as a string
+ * @returns true if signature is valid, false otherwise
+ * @see https://developers.facebook.com/docs/messenger-platform/webhooks#validate-payloads
+ */
+function verifyWebhookSignature(signature: string | undefined, rawBody: string): boolean {
+    if (!signature || !FACEBOOK_APP_SECRET) {
+        console.error('[META] Missing signature or App Secret for webhook verification');
+        return false;
+    }
+
+    // Signature format is "sha256=<hash>"
+    const signatureParts = signature.split('=');
+    if (signatureParts.length !== 2 || signatureParts[0] !== 'sha256') {
+        console.error('[META] Invalid signature format');
+        return false;
+    }
+
+    const receivedHash = signatureParts[1];
+
+    // Compute expected signature
+    const expectedHash = crypto
+        .createHmac('sha256', FACEBOOK_APP_SECRET)
+        .update(rawBody)
+        .digest('hex');
+
+    // Use timing-safe comparison to prevent timing attacks
+    try {
+        const receivedBuffer = Buffer.from(receivedHash, 'hex');
+        const expectedBuffer = Buffer.from(expectedHash, 'hex');
+
+        if (receivedBuffer.length !== expectedBuffer.length) {
+            console.error('[META] Signature length mismatch');
+            return false;
+        }
+
+        return crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
+    } catch (err) {
+        console.error('[META] Error verifying signature:', err);
+        return false;
+    }
+}
+
+/**
  * Generates the OAuth redirect URI based on environment
  * 
  * @returns The fully qualified redirect URI
@@ -637,6 +686,8 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
      * 
      * Handles incoming webhook events from Meta.
      * 
+     * Security: Verifies X-Hub-Signature-256 header to ensure request is from Meta.
+     * 
      * Event types handled:
      * - message: New message from user
      * - postback: Button click callback
@@ -647,6 +698,27 @@ export async function metaRoutes(app: FastifyInstance): Promise<void> {
      * @see https://developers.facebook.com/docs/messenger-platform/reference/webhook-events
      */
     app.post('/meta/webhook', async (request: FastifyRequest, reply: FastifyReply) => {
+        // ================================================================
+        // Step 0: Verify webhook signature (CRITICAL SECURITY CHECK)
+        // ================================================================
+        const signature = request.headers['x-hub-signature-256'] as string | undefined;
+        const rawBody = (request as any).rawBody || JSON.stringify(request.body);
+
+        // In production, always verify signatures. In development, log warning but allow.
+        const isProduction = process.env.NODE_ENV === 'production';
+        const isValidSignature = verifyWebhookSignature(signature, rawBody);
+
+        if (!isValidSignature) {
+            if (isProduction) {
+                console.error('[META] SECURITY: Invalid webhook signature - rejecting request');
+                return reply.status(401).send('Invalid signature');
+            } else {
+                console.warn('[META] WARNING: Invalid webhook signature - allowing in development mode');
+            }
+        } else {
+            console.log('[META] Webhook signature verified successfully');
+        }
+
         const body = request.body as {
             object?: string;
             entry?: Array<{ messaging?: WebhookEvent[] }>
