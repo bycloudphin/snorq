@@ -233,23 +233,9 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                 return reply.status(404).send({ success: false, error: { message: 'Conversation not found' } });
             }
 
-            // 2. Create Message in DB (Pending)
-            const message = await prisma.message.create({
-                data: {
-                    conversationId: conversation.id,
-                    direction: 'OUTBOUND',
-                    content: content,
-                    contentType: 'TEXT',
-                    status: 'PENDING',
-                    sentByUserId: decoded.userId,
-                    createdAt: new Date()
-                }
-            });
+            let externalId = null;
 
-
-
-            // 3. Send to Facebook
-
+            // 2. Attempt to Send to Platform
             if (conversation.platform === 'FACEBOOK') {
                 const facebookService = new FacebookService();
                 try {
@@ -258,65 +244,55 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                         conversation.externalId,
                         content
                     );
-
-                    // 4. Update Message Status
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: {
-                            status: 'SENT',
-                            externalId: result.externalId
-                        }
-                    });
-
-                    // 4. Update Conversation in DB
-                    const updatedConv = await prisma.conversation.update({
-                        where: { id: conversation.id },
-                        data: {
-                            lastMessageAt: new Date(),
-                            lastMessagePreview: `You: ${content}`,
-                            status: 'OPEN',
-                            updatedAt: new Date()
-                        }
-                    });
-
-                    // 5. Emit Real-time Event to Org
-                    SocketService.getInstance().emitToOrganization(conversation.organizationId, 'new_message', {
-                        conversationId: conversation.id,
-                        message: {
-                            ...message,
-                            status: 'SENT',
-                            externalId: result.externalId
-                        },
-                        conversation: updatedConv
-                    });
-
+                    externalId = result.externalId;
                 } catch (error: any) {
-                    await prisma.message.delete({
-                        where: { id: message.id }
-                    });
+                    console.error('Meta Send Error:', error);
+                    let cleanMessage = error.message || 'Failed to send message to Facebook';
 
-                    // If it's a known Facebook policy error, return a cleaner message
                     if (error.message?.includes('outside the allowed window') || error.message?.includes('24-hour window')) {
-                        return reply.status(400).send({
-                            success: false,
-                            error: {
-                                message: 'Facebook 24-hour window expired. You can only reply if the user messaged you in the last 24 hours.'
-                            }
-                        });
+                        cleanMessage = 'Facebook 24-hour window expired. You can only reply if the user messaged you in the last 24 hours.';
+                    } else if (error.message?.includes('HUMAN_AGENT') && error.message?.includes('approval')) {
+                        cleanMessage = 'Facebook Human Agent tag requires Meta App approval. Please request this permission in Meta Developer Portal or use standard replies within 24 hours.';
                     }
 
-                    if (error.message?.includes('HUMAN_AGENT') && error.message?.includes('approval')) {
-                        return reply.status(400).send({
-                            success: false,
-                            error: {
-                                message: 'Facebook Human Agent tag requires Meta App approval. Please request this permission in Meta Developer Portal or use standard replies within 24 hours.'
-                            }
-                        });
-                    }
-
-                    throw error;
+                    return reply.status(400).send({
+                        success: false,
+                        error: { message: cleanMessage }
+                    });
                 }
             }
+
+            // 3. Only if send succeeded, save to DB
+            const message = await prisma.message.create({
+                data: {
+                    conversationId: conversation.id,
+                    direction: 'OUTBOUND',
+                    content: content,
+                    contentType: 'TEXT',
+                    status: 'SENT',
+                    externalId,
+                    sentByUserId: decoded.userId,
+                    createdAt: new Date()
+                }
+            });
+
+            // 4. Update Conversation in DB
+            const updatedConv = await prisma.conversation.update({
+                where: { id: conversation.id },
+                data: {
+                    lastMessageAt: new Date(),
+                    lastMessagePreview: `You: ${content}`,
+                    status: 'OPEN',
+                    updatedAt: new Date()
+                }
+            });
+
+            // 5. Emit Real-time Event to Org
+            SocketService.getInstance().emitToOrganization(conversation.organizationId, 'new_message', {
+                conversationId: conversation.id,
+                message,
+                conversation: updatedConv
+            });
 
             return reply.send({
                 success: true,
