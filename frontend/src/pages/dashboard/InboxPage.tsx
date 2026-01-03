@@ -32,6 +32,7 @@ export function InboxPage() {
     const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoadingConversations, setIsLoadingConversations] = useState(false);
+    const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
     const [isSyncing, setIsSyncing] = useState(false);
     const [inputMessage, setInputMessage] = useState('');
 
@@ -238,8 +239,13 @@ export function InboxPage() {
                             >
                                 <div className="flex gap-3">
                                     <div className="relative shrink-0">
-                                        {conv.contactAvatarUrl ? (
-                                            <img src={conv.contactAvatarUrl} alt="" className="w-10 h-10 rounded-full bg-slate-200 object-cover" />
+                                        {conv.contactAvatarUrl && !imgErrors[conv.id] ? (
+                                            <img
+                                                src={conv.contactAvatarUrl}
+                                                alt=""
+                                                className="w-10 h-10 rounded-full bg-slate-200 object-cover"
+                                                onError={() => setImgErrors(prev => ({ ...prev, [conv.id]: true }))}
+                                            />
                                         ) : (
                                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-500 font-bold text-sm">
                                                 {conv.contactName?.[0]?.toUpperCase() || '?'}
@@ -279,8 +285,13 @@ export function InboxPage() {
                         {/* Chat Header */}
                         <div className="h-16 border-b border-slate-100 flex items-center justify-between px-6 bg-white shrink-0">
                             <div className="flex items-center gap-3">
-                                {selectedConversation.contactAvatarUrl ? (
-                                    <img src={selectedConversation.contactAvatarUrl} alt="" className="w-10 h-10 rounded-full bg-slate-200 object-cover" />
+                                {selectedConversation.contactAvatarUrl && !imgErrors[selectedConversation.id] ? (
+                                    <img
+                                        src={selectedConversation.contactAvatarUrl}
+                                        alt=""
+                                        className="w-10 h-10 rounded-full bg-slate-200 object-cover"
+                                        onError={() => setImgErrors(prev => ({ ...prev, [selectedConversation.id]: true }))}
+                                    />
                                 ) : (
                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm">
                                         {selectedConversation.contactName?.[0]?.toUpperCase() || '?'}
