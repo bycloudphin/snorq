@@ -291,9 +291,8 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                     });
 
                 } catch (error: any) {
-                    await prisma.message.update({
-                        where: { id: message.id },
-                        data: { status: 'FAILED' }
+                    await prisma.message.delete({
+                        where: { id: message.id }
                     });
 
                     // If it's a known Facebook policy error, return a cleaner message
