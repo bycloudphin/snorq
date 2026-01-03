@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Platform, ConnectionStatus, ContentType } from '@prisma/client';
 import { z } from 'zod';
@@ -59,7 +60,85 @@ const exchangeTokenSchema = z.object({
     code: z.string(),
 });
 
+/**
+ * Helper to parse and verify Facebook's signed_request
+ */
+function parseSignedRequest(signedRequest: string): any {
+    if (!signedRequest || !FACEBOOK_APP_SECRET) return null;
+
+    try {
+        const [encodedSig, payload] = signedRequest.split('.');
+
+        // Decode payload
+        const data = JSON.parse(Buffer.from(payload.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString());
+
+        // Verify signature
+        const hmac = crypto.createHmac('sha256', FACEBOOK_APP_SECRET);
+        hmac.update(payload);
+        const expectedSig = hmac.digest('base64').replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+
+        if (encodedSig !== expectedSig) {
+            console.error('[META] Invalid signed_request signature');
+            return null;
+        }
+
+        return data;
+    } catch (err) {
+        console.error('[META] Error parsing signed_request:', err);
+        return null;
+    }
+}
+
 export async function metaRoutes(app: FastifyInstance): Promise<void> {
+
+    // --- Meta Compliance Endpoints ---
+
+    // Deauthorize Callback: Called when user removes the app from FB settings
+    app.post('/meta/deauthorize', async (request, reply) => {
+        const body = request.body as any;
+        const signedRequest = body.signed_request;
+
+        const data = parseSignedRequest(signedRequest);
+        if (!data || !data.user_id) {
+            return reply.status(400).send({ message: 'Invalid signed request' });
+        }
+
+        console.log(`[META] Deauthorize request for FB User: ${data.user_id}`);
+
+        // Update all connections for this FB user to DISCONNECTED
+        await prisma.platformConnection.updateMany({
+            where: { platformUserId: data.user_id },
+            data: { status: ConnectionStatus.DISCONNECTED }
+        });
+
+        return reply.status(200).send({ success: true });
+    });
+
+    // Data Deletion Callback: Mandatory for Meta API apps
+    app.post('/meta/deletion', async (request, reply) => {
+        const body = request.body as any;
+        const signedRequest = body.signed_request;
+
+        const data = parseSignedRequest(signedRequest);
+        if (!data || !data.user_id) {
+            return reply.status(400).send({ message: 'Invalid signed request' });
+        }
+
+        console.log(`[META] Data deletion request for FB User: ${data.user_id}`);
+
+        // Mark connections as deleted or handle cleanup
+        // For now, we'll disconnect them to stop syncs
+        await prisma.platformConnection.updateMany({
+            where: { platformUserId: data.user_id },
+            data: { status: ConnectionStatus.DISCONNECTED }
+        });
+
+        // Meta expects a JSON response with a receipt code and a URL to check status
+        return reply.status(200).send({
+            url: `${process.env.FRONTEND_URL}/privacy-policy`,
+            confirmation_code: `del_${data.user_id}_${Date.now()}`
+        });
+    });
 
 
     // 1. Get Facebook Auth URL

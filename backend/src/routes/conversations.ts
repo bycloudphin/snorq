@@ -4,6 +4,7 @@ import { Platform, ConnectionStatus, ContentType } from '@prisma/client';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../utils/db.js';
 import { FacebookService } from '../services/platform/FacebookService';
+import { SocketService } from '../socket/SocketService';
 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
@@ -267,8 +268,8 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                         }
                     });
 
-                    // Update Conversation Last Message
-                    await prisma.conversation.update({
+                    // 4. Update Conversation in DB
+                    const updatedConv = await prisma.conversation.update({
                         where: { id: conversation.id },
                         data: {
                             lastMessageAt: new Date(),
@@ -276,6 +277,17 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                             status: 'OPEN',
                             updatedAt: new Date()
                         }
+                    });
+
+                    // 5. Emit Real-time Event to Org
+                    SocketService.getInstance().emitToOrganization(conversation.organizationId, 'new_message', {
+                        conversationId: conversation.id,
+                        message: {
+                            ...message,
+                            status: 'SENT',
+                            externalId: result.externalId
+                        },
+                        conversation: updatedConv
                     });
 
                 } catch (error) {
