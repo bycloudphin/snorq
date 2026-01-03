@@ -13,10 +13,11 @@ export class FacebookService implements PlatformService {
         const pageAccessToken = connection.accessToken;
         const url = `${this.BASE_URL}/${this.API_VERSION}/me/messages?access_token=${pageAccessToken}`;
 
-        const payload = {
+        const payload: any = {
             recipient: { id: recipientId },
             message: { text: content },
-            messaging_type: "RESPONSE"
+            messaging_type: "MESSAGE_TAG",
+            tag: "HUMAN_AGENT"
         };
 
         try {

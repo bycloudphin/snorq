@@ -161,7 +161,7 @@ export function InboxPage() {
             const data = await res.json();
             if (!data.success) {
                 setMessages(prev => prev.filter(m => m.id !== tempId));
-                alert('Failed to send message');
+                alert(data.error?.message || 'Failed to send message');
                 setInputMessage(originalMessage);
             } else {
                 setMessages(prev => prev.map(m => m.id === tempId ? data.data : m));

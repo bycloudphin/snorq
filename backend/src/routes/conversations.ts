@@ -290,11 +290,22 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
                         conversation: updatedConv
                     });
 
-                } catch (error) {
+                } catch (error: any) {
                     await prisma.message.update({
                         where: { id: message.id },
                         data: { status: 'FAILED' }
                     });
+
+                    // If it's a known Facebook policy error, return a cleaner message
+                    if (error.message?.includes('outside the allowed window') || error.message?.includes('24-hour window')) {
+                        return reply.status(400).send({
+                            success: false,
+                            error: {
+                                message: 'Facebook 24-hour window expired. You can only reply if the user messaged you in the last 24 hours.'
+                            }
+                        });
+                    }
+
                     throw error;
                 }
             }
@@ -306,7 +317,13 @@ export async function conversationRoutes(app: FastifyInstance): Promise<void> {
 
         } catch (error: any) {
             console.error('Send Message Error:', error);
-            return reply.status(500).send({ success: false, error: { message: error.message || 'Failed to send message' } });
+            const status = error.statusCode || 500;
+            return reply.status(status).send({
+                success: false,
+                error: {
+                    message: error.message || 'Failed to send message'
+                }
+            });
         }
     });
 }
