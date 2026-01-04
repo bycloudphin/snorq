@@ -83,7 +83,7 @@ export function HowItWorksPage() {
                             Digital Communication
                         </h1>
                         <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
-                            SNORQ bridges the gap between fragmented social platforms and cohesive customer experiences. Here's exactly how it works.
+                            SNORQ bridges the gap between fragmented social platforms and cohesive customer experiences. Here&apos;s exactly how it works.
                         </p>
 
                         <div className="flex flex-wrap items-center justify-center gap-4">

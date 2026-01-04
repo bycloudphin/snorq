@@ -83,7 +83,7 @@ export function InboxPage() {
             // 2. Update Conversations list
             setConversations((prev) => {
                 const existingConvIndex = prev.findIndex(c => c.id === data.conversationId);
-                let newConvs = [...prev];
+                const newConvs = [...prev];
 
                 if (existingConvIndex !== -1) {
                     const conv = { ...newConvs[existingConvIndex] };
