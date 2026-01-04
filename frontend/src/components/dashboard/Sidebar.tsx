@@ -17,7 +17,7 @@ export function Sidebar() {
             {/* Logo */}
             <div className="p-6">
                 <Link to="/" className="flex items-center gap-3 text-white hover:opacity-90 transition-opacity">
-                    <img src="/logo.png" alt="SNORQ" className="h-8" />
+                    <img src="/logo.png" alt="SNORQ" className="h-24 object-contain" />
                 </Link>
             </div>
 

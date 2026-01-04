@@ -8,7 +8,7 @@ export function Footer() {
                     {/* Brand */}
                     <div className="md:col-span-2">
                         <Link to="/" className="flex items-center mb-4">
-                            <img src="/logo.png" alt="SNORQ" className="h-8" />
+                            <img src="/logo.png" alt="SNORQ" className="h-24 object-contain" />
                         </Link>
                         <p className="text-slate-500 text-sm mb-4 max-w-xs">
                             The unified inbox for modern businesses. Manage all your social conversations in one place.

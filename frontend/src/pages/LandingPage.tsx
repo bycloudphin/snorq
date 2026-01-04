@@ -68,9 +68,7 @@ export function LandingPage() {
                             </div>
 
                             <h1 className="heading-xl text-slate-900 mb-6 animate-slide-up">
-                                All your <span className="font-serif italic underline-accent">conversation</span>.
-                                <br />
-                                One intelligent workspace.
+                                All your <span className="font-serif italic underline-accent">conversation</span> One intelligent workspace
                             </h1>
 
                             <p className="text-body mb-8 animate-slide-up stagger-1">
