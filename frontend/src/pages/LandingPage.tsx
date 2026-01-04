@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
+import { StructuredData } from '../components/seo/StructuredData';
 
 export function LandingPage() {
     const [email, setEmail] = useState('');
@@ -52,6 +53,7 @@ export function LandingPage() {
 
     return (
         <div className="min-h-screen bg-white">
+            <StructuredData />
             <Header />
 
             {/* Hero Section */}
@@ -66,11 +68,13 @@ export function LandingPage() {
                             </div>
 
                             <h1 className="heading-xl text-slate-900 mb-6 animate-slide-up">
-                                Put <span className="font-serif italic underline-accent">conversations</span> first
+                                All your <span className="font-serif italic underline-accent">conversation</span>.
+                                <br />
+                                One intelligent workspace.
                             </h1>
 
                             <p className="text-body mb-8 animate-slide-up stagger-1">
-                                Fast, unified and seamless - manage all your TikTok, WhatsApp, and Messenger conversations in one powerful inbox with your own branded experience.
+                                Bring every business conversation into focus. Manage TikTok, WhatsApp, and Messenger in one powerful, unified inbox built for modern teams.
                             </p>
 
                             {/* Email Subscription Form */}

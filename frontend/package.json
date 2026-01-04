@@ -12,12 +12,14 @@
         "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
         "test": "vitest run",
         "test:watch": "vitest",
-        "test:coverage": "vitest run --coverage"
+        "test:coverage": "vitest run --coverage",
+        "generate:sitemap": "node scripts/generate-sitemap.mjs"
     },
     "dependencies": {
         "@tanstack/react-query": "^5.20.0",
         "axios": "^1.6.7",
         "date-fns": "^2.30.0",
+        "framer-motion": "^12.23.26",
         "lucide-react": "^0.321.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

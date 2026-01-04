@@ -17,10 +17,7 @@ export function Sidebar() {
             {/* Logo */}
             <div className="p-6">
                 <Link to="/" className="flex items-center gap-3 text-white hover:opacity-90 transition-opacity">
-                    <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center shadow-lg shadow-green-900/20">
-                        <MessageSquare className="w-6 h-6 text-white" />
-                    </div>
-                    <span className="text-xl font-bold tracking-tight">SNORQ</span>
+                    <img src="/logo.png" alt="SNORQ" className="h-8" />
                 </Link>
             </div>
 

@@ -4,11 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Base styles - Monotree Theme */
+/* Base styles - SNORQ Brand Theme */
 :root {
-  --accent: #22c55e;
-  --accent-hover: #16a34a;
-  --text-primary: #0f172a;
+  --accent: #8cc63f;
+  --accent-hover: #7ab82e;
+  --text-primary: #000000;
   --text-secondary: #64748b;
   --border-color: #e2e8f0;
   --bg-primary: #ffffff;
@@ -85,7 +85,7 @@ body {
     left: 0;
     right: 0;
     height: 3px;
-    background: #22c55e;
+    background: #8cc63f;
     border-radius: 2px;
   }
 
@@ -106,6 +106,7 @@ body {
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -116,6 +117,7 @@ body {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -123,9 +125,12 @@ body {
 }
 
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -136,6 +141,7 @@ body {
     transform: scale(0.8);
     opacity: 0.5;
   }
+
   100% {
     transform: scale(1.2);
     opacity: 0;
@@ -159,11 +165,25 @@ body {
 }
 
 /* Staggered animations */
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.stagger-5 {
+  animation-delay: 0.5s;
+}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
@@ -207,7 +227,7 @@ body {
 
 /* Grid background pattern */
 .grid-pattern {
-  background-image: 
+  background-image:
     linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
   background-size: 48px 48px;

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown } from 'lucide-react';
 
 export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,11 +10,8 @@ export function Header() {
             <div className="container mx-auto px-6 py-4">
                 <div className="flex items-center justify-between">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2">
-                        <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center">
-                            <MessageSquare className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-xl font-bold text-slate-900">SNORQ</span>
+                    <Link to="/" className="flex items-center">
+                        <img src="/logo.png" alt="SNORQ" className="h-8" />
                     </Link>
 
                     {/* Desktop Nav */}

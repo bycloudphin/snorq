@@ -1,0 +1,13 @@
+# SNORQ robots.txt
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas (when they exist)
+Disallow: /admin/
+Disallow: /api/
+Disallow: /dashboard/
+
+# Sitemap location
+Sitemap: https://snorq.xyz/sitemap.xml

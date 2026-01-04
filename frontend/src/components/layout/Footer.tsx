@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { MessageSquare } from 'lucide-react';
 
 export function Footer() {
     return (
@@ -8,11 +7,8 @@ export function Footer() {
                 <div className="grid md:grid-cols-5 gap-12 mb-12">
                     {/* Brand */}
                     <div className="md:col-span-2">
-                        <Link to="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center">
-                                <MessageSquare className="w-5 h-5 text-white" />
-                            </div>
-                            <span className="text-xl font-bold text-slate-900">SNORQ</span>
+                        <Link to="/" className="flex items-center mb-4">
+                            <img src="/logo.png" alt="SNORQ" className="h-8" />
                         </Link>
                         <p className="text-slate-500 text-sm mb-4 max-w-xs">
                             The unified inbox for modern businesses. Manage all your social conversations in one place.
@@ -28,7 +24,7 @@ export function Footer() {
                         <h4 className="font-semibold text-slate-900 mb-4">Product</h4>
                         <ul className="space-y-3 text-sm">
                             <li><a href="/#features" className="text-slate-500 hover:text-slate-900 transition-colors">Features</a></li>
-                            <li><a href="/#how-it-works" className="text-slate-500 hover:text-slate-900 transition-colors">How it Works</a></li>
+                            <li><Link to="/how-it-works" className="text-slate-500 hover:text-slate-900 transition-colors">How it Works</Link></li>
                             <li><a href="/#platforms" className="text-slate-500 hover:text-slate-900 transition-colors">Platforms</a></li>
                             <li><span className="text-slate-400">Pricing <span className="text-xs">(Coming soon)</span></span></li>
                         </ul>

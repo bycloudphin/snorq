@@ -4,17 +4,18 @@ export default {
     theme: {
         extend: {
             colors: {
+                // SNORQ Brand - Lime Green
                 primary: {
-                    50: '#eef2ff',
-                    100: '#e0e7ff',
-                    200: '#c7d2fe',
-                    300: '#a5b4fc',
-                    400: '#818cf8',
-                    500: '#6366f1',
-                    600: '#4f46e5',
-                    700: '#4338ca',
-                    800: '#3730a3',
-                    900: '#312e81',
+                    50: '#f4fae8',
+                    100: '#e6f4c7',
+                    200: '#d4ed92',
+                    300: '#b9e04e',
+                    400: '#a3d63d',
+                    500: '#8cc63f',
+                    600: '#7ab82e',
+                    700: '#5e9122',
+                    800: '#4a721b',
+                    900: '#3d5e19',
                 },
                 // Platform colors
                 tiktok: {

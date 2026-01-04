@@ -8,6 +8,7 @@ import { DashboardHome } from './pages/dashboard/DashboardHome';
 import { InboxPage } from './pages/dashboard/InboxPage';
 import { IntegrationsPage } from './pages/dashboard/settings/IntegrationsPage';
 import { FacebookCallbackPage } from './pages/dashboard/settings/FacebookCallbackPage';
+import { HowItWorksPage } from './pages/HowItWorksPage';
 import {
     AboutPage,
     BlogPage,
@@ -26,6 +27,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
 
             {/* Dashboard Routes */}
             <Route path="/dashboard" element={<DashboardLayout />}>
